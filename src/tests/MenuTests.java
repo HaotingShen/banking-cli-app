@@ -26,4 +26,15 @@ public class MenuTests {
         }
         
     }
+
+    @Test
+    void test_user_creation() {
+        boolean success = this.menu.create_user("Test","password",0);
+        try {
+            assertTrue(success);
+            this.menu.datahandler.delete_user("Test");
+        } catch (Exception e) {
+            this.menu.datahandler.delete_user("Test");
+        }
+    }
 }

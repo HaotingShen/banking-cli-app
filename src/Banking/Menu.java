@@ -13,6 +13,16 @@ public class Menu {
         this.activeUser = null;
     }
 
+    public boolean create_user(String username, String password, int balance = 0) {
+        if (datahandler.does_userexist(username)) {
+            return false; // user already exists
+        }
+        User newUser = new User(username,password,balance);
+        datahandler.create_user(newUser);
+        this.activeUser = newUser;
+        return true;
+    }
+
     public boolean authenticate_user_pass(String username, String password) {
         // check if user exists
         if (datahandler.does_userexist(username)) {
