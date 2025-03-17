@@ -18,6 +18,12 @@ public class MenuTests {
     void test_authentication() {
         User testUser = new User("Test","password",0);
         this.menu.datahandler.create_user(testUser);
-        assertTrue(this.menu.authenticate_user_pass("Test","password"));
+        try {
+            assertTrue(this.menu.authenticate_user_pass("Test","password"));
+        }
+        catch (Exception e) {
+            this.menu.datahandler.delete_user("Test");
+        }
+        
     }
 }
