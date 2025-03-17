@@ -13,7 +13,7 @@ public class Menu {
         this.activeUser = null;
     }
 
-    public boolean authenticateUserPass(String username, String password) {
+    public boolean authenticate_user_pass(String username, String password) {
         // check if user exists
         if (datahandler.does_userexist(username)) {
             // get user data
