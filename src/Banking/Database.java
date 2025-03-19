@@ -29,7 +29,7 @@ public class Database {
         if (mapToUser.containsKey(username)) {
             mapToUser.remove(username);
         } else {
-            throw new Exception("Username: '" + username + "' not found in the database.");
+            throw new RuntimeException("Username: '" + username + "' not found in the database.");
         }
     }
     
