@@ -1,1 +1,4 @@
 *.class
+/.gitignore
+/Banking/
+/tests/
