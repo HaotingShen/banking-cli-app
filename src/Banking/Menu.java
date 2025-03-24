@@ -12,6 +12,10 @@ public class Menu {
         this.activeUser = null;
     }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 799f100bc8acb166a9de673f3e1de7b09f3154b1
     public boolean createUser(String username, String password, int balance = 0) {
         if (dataHandler.doesUserExist(username)) {
             return false; // user already exists

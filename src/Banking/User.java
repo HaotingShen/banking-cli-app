@@ -4,17 +4,19 @@ package banking;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
-import java.util.Objects;
+import java.util.*;
 
 class User {
 
     private String username;
     private String password;
     private double balance;
+    private List<Transaction> transactionHistory;
     User(String username, String password, double balance) {
         this.username = username;
         this.password = password;
         this.balance = balance;
+        this.transactionHistory = new ArrayList<>();
     }
     public Object getHashedPassword() {
         // TODO Auto-generated method stub
@@ -44,4 +46,35 @@ class User {
     public int hashCode() {
         return Objects.hash(username, password, balance);
     }
+    
+    //Issue a charge
+    public void issueCharge(double amount, String description) {
+        if (amount > 0 && balance >= amount) {
+            balance -= amount;
+            transactionHistory.add(new Transaction(-amount, "Charge: " + description));
+        } 
+        else if (amount <= 0) {
+            System.out.println("Charge amount invalid.");
+        } 
+        else if (balance < amount) {
+            System.out.println("Insufficient balance.");
+        } 
+        else {
+            System.out.println("An error occurred. Please try again later.");
+        }
+    }
+
+    //Request statement
+    public void printStatement() {
+        System.out.println("\n--- Account Statement ---");
+        for (Transaction t : transactionHistory) {
+            System.out.printf("[%s] %s: $%.2f\n", t.getDate(), t.getDescription(), t.getAmount());
+        }
+        System.out.printf("Current Balance: $%.2f\n", balance);
+    }
+
+    public List<Transaction> getTransactionHistory() {
+        return transactionHistory;
+    }
+    
 }
