@@ -38,7 +38,9 @@ public class BankingApp {
             System.out.println("1. Check Balance");
             System.out.println("2. Deposit");
             System.out.println("3. Withdraw");
-            System.out.println("4. Logout");
+            System.out.println("4. Issue a Charge");
+            System.out.println("5. Request Statement");
+            System.out.println("6. Logout");
 
             System.out.print("Choose option: ");
             int choice = Integer.parseInt(scanner.nextLine());
@@ -63,6 +65,17 @@ public class BankingApp {
                     }
                     break;
                 case 4:
+                    System.out.print("Charge amount: ");
+                    double chargeAmount = Double.parseDouble(scanner.nextLine());
+                    System.out.print("Charge description: ");
+                    String chargeDesc = scanner.nextLine();
+                    activeUser.issueCharge(chargeAmount, chargeDesc); //Charge the user yourself for now
+                    System.out.println("Charge issued.");
+                    break;
+                case 5:
+                    activeUser.printStatement();
+                    break;
+                case 6:
                     menu.logout();//TODO
                     System.out.println("Logged out.\n");
                     return;
