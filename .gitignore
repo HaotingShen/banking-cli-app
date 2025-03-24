@@ -11,8 +11,8 @@
 .mtj.tmp/
 
 # Package Files #
-*.jar
-*.war
+# *.jar
+*.war 
 *.nar
 *.ear
 *.zip
@@ -23,3 +23,5 @@
 hs_err_pid*
 replay_pid*
 bin/
+.vscode/
+.metadata/

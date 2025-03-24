@@ -102,6 +102,7 @@ public class Menu {
         i = 1;
         for (Option item : items) {
             if (i == userChoice) {
+                keyboardInput.nextLine(); // clears the newline from the item selection
                 item.execute();
             }
             i++;
@@ -109,10 +110,10 @@ public class Menu {
     }
 
     private void login() {
-        System.out.print("Enter username: ");
+        System.out.println("Enter username: ");
         String username = keyboardInput.nextLine();
     
-        System.out.print("Enter password: ");
+        System.out.println("Enter password: ");
         String password = keyboardInput.nextLine();
     
         if (dataHandler.doesUserExist(username)) {
@@ -136,13 +137,13 @@ public class Menu {
     }
     
     private void signUp() {
-        System.out.print("Enter new username: ");
+        System.out.println("Enter new username: ");
         String username = keyboardInput.nextLine();
     
-        System.out.print("Enter password: ");
+        System.out.println("Enter password: ");
         String password = keyboardInput.nextLine();
 
-        System.out.print("Confirm password: ");
+        System.out.println("Confirm password: ");
         String passwordConfirmation = keyboardInput.nextLine();
 
         if(!password.equals(passwordConfirmation)) {
