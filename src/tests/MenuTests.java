@@ -15,15 +15,26 @@ public class MenuTests {
     }
 
     @Test
-    void test_authentication() {
+    void testAuthentication() {
         User testUser = new User("Test","password",0);
-        this.menu.datahandler.create_user(testUser);
+        this.menu.dataHandler.createUser(testUser);
         try {
-            assertTrue(this.menu.authenticate_user_pass("Test","password"));
+            assertTrue(this.menu.authenticateUserPass("Test","password"));
         }
         catch (Exception e) {
-            this.menu.datahandler.delete_user("Test");
+            this.menu.dataHandler.deleteUser("Test");
         }
         
+    }
+
+    @Test
+    void testUserCreation() {
+        boolean success = this.menu.createUser("Test","password",0);
+        try {
+            assertTrue(success);
+            this.menu.dataHandler.deleteUser("Test");
+        } catch (Exception e) {
+            this.menu.dataHandler.deleteUser("Test");
+        }
     }
 }
