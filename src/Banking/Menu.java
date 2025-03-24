@@ -1,7 +1,6 @@
 package banking;
 import banking.Database; //future class, handle reading from our files for persistence
 import banking.Option;
-import banking.Cryptography;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -100,7 +99,7 @@ public class Menu {
     
         if (dataHandler.doesUserExist(username)) {
             User requestedAccount = dataHandler.getUserData(username);
-            if (requestedAccount.getHashedPassword().equals(Cryptography.hashPassword(password))) {
+            if (requestedAccount.getHashedPassword().equals(Menu.hashPassword(password))) {
                 this.activeUser = requestedAccount;
                 System.out.println("Login successful!");
             } else {
@@ -137,5 +136,23 @@ public class Menu {
         this.activeUser = null;
         System.out.println("Logged out Succesfully");
     }
+
+    public static String hashPassword(String password) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] hashBytes = md.digest(password.getBytes());
+
+            // Convert hash bytes to hex string
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+
+            String hashedPassword = sb.toString();
+            return hashedPassword;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not found.");
+        }
+}
 
 }
