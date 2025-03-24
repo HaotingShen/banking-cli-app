@@ -77,8 +77,8 @@ public class Menu {
     public void deposit() {
         System.out.println("How much would you like to deposit?");
         double amount = keyboardInput.nextDouble();
-        //activeUser.deposit(amount); // User class still needs to implement
-        System.out.println("Success! Your new balance is: " + activeUser.getBalance());
+        activeUser.deposit(amount); // User class still needs to implement
+        //System.out.println("Success! Your new balance is: " + activeUser.getBalance());
     }
 
     public void withdraw() {
@@ -139,6 +139,9 @@ public class Menu {
     private void signUp() {
         System.out.println("Enter new username: ");
         String username = keyboardInput.nextLine();
+
+        System.out.println("Enter new accountNumber: ");
+        String accountNumber = keyboardInput.nextLine();
     
         System.out.println("Enter password: ");
         String password = keyboardInput.nextLine();
@@ -149,7 +152,7 @@ public class Menu {
         if(!password.equals(passwordConfirmation)) {
             System.out.println("Passwords do not match, exiting...");
         } else {
-            if (createUser(username, passwordConfirmation, 0)) {
+            if (createUser(username,accountNumber, passwordConfirmation, 0)) {
                 System.out.println("Account created successfully!");
             } else {
                 System.out.println("Account already exists.");
@@ -157,9 +160,9 @@ public class Menu {
         }
     }
 
-    public boolean createUser(String username, String password, double balance) {
+    public boolean createUser(String username, String accountNumber, String password, double balance) {
         if (!dataHandler.doesUserExist(username)) {
-            User userToRegister = new User(username,Menu.hashPassword(password),balance);
+            User userToRegister = new User(username,accountNumber, Menu.hashPassword(password),balance);
             this.activeUser = dataHandler.createUser(userToRegister);
             return true;
         }

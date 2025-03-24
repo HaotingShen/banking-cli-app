@@ -12,10 +12,13 @@ public class User {
     private String hashedPassword;
     private double balance;
     private List<Transaction> transactionHistory;
-    public User(String username, String hashedPassword, double balance) {
+    private String accountNumber;
+    
+    public User(String username, String accountNumber, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;
+        this.accountNumber = accountNumber;
         this.transactionHistory = new ArrayList<>();
     }
     public Object getHashedPassword() {
@@ -24,6 +27,19 @@ public class User {
 
     public String getUsername() {
         return username;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+    
+    public void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            System.out.println("Deposit successful. New balance: " + balance);
+        } else {
+            System.out.println("Deposit amount must be positive.");
+        }
     }
 
     public double getBalance() {

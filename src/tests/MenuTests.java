@@ -39,7 +39,7 @@ public class MenuTests {
         }
         String hashedPassword = sb.toString();
 
-        User testUser = new User("Test", hashedPassword,0);
+        User testUser = new User("Test", "123",hashedPassword,0);
         
         this.menu.getDataHandler().createUser(testUser);
         try {
@@ -54,7 +54,7 @@ public class MenuTests {
     @Test
     void testUserCreation() throws Exception {
     	
-        boolean success = this.menu.createUser("Test","password",0);
+        boolean success = this.menu.createUser("Test","123","password",0);
         try {
             assertTrue(success);
             this.menu.getDataHandler().deleteUser("Test");
