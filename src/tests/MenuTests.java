@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import Banking.Menu;
-import Banking.User;
+import banking.Menu;
+import banking.User;
 
 public class MenuTests {
     

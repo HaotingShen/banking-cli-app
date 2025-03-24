@@ -1,5 +1,4 @@
-package Banking;
-import Banking.Database; //future class, handle reading from our files for persistence
+package banking;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -12,6 +11,7 @@ public class Menu {
         this.dataHandler = new Database();
         this.activeUser = null;
     }
+
 
     public boolean createUser(String username, String password, int balance = 0) {
         if (dataHandler.doesUserExist(username)) {
@@ -28,6 +28,7 @@ public class Menu {
         if (dataHandler.doesUserexist(username)) {
             // get user data
             User requestedAccount = dataHandler.getUserdata(username);
+
             // check if password matches hashes
             try {
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
