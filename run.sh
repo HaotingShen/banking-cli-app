@@ -7,7 +7,7 @@ mkdir -p bin
 
 # Compile packages
 echo "Compiling Java resources..."
-javac -d bin src/Banking/*.java src/tests/*.java
+javac -cp  -d bin src/Banking/*.java src/tests/*.java
 
 if [ $? -eq 0 ]; then
     echo "Compilation successful."
