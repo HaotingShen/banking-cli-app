@@ -7,7 +7,7 @@ mkdir -p bin
 
 # Compile packages
 echo "Compiling Java resources..."
-javac -cp  -d bin src/Banking/*.java src/tests/*.java
+javac -cp  -d bin src/banking/*.java src/tests/*.java
 
 if [ $? -eq 0 ]; then
     echo "Compilation successful."
@@ -18,5 +18,5 @@ fi
 
 # Run the Menu class
 echo "Running the program..."
-java -cp bin Banking.BankingApp
+java -cp bin banking.BankingApp
 

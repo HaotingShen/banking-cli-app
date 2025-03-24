@@ -3,10 +3,12 @@ import static org.junit.Assert.assertTrue;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import banking.Database;
 import banking.Menu;
 import banking.User;
 
@@ -17,7 +19,9 @@ public class MenuTests {
 
 	@BeforeEach
     void setup() throws Exception {
-        this.menu = new Menu();
+        Scanner keyboardInput = new Scanner(System.in);
+        Database dataHandler = new Database();
+        this.menu = new Menu(keyboardInput,dataHandler);
         
         md = MessageDigest.getInstance("SHA-256");
     }

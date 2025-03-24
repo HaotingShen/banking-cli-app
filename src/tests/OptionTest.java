@@ -8,7 +8,7 @@ public class OptionTest {
     @Test
     void testNameStorage() {
         Option testName = new Option("Correct Name",()->{});
-        assertTrue(testName.getOptionName(),"Correct Name");
+        assertTrue(testName.getOptionName().equals("Correct Name"));
     }
 
     @Test 

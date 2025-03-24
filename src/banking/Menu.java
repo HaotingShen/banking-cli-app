@@ -30,7 +30,7 @@ public class Menu {
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Deposit",this::deposit));
         privateOptions.add(new Option("Withdraw",this::withdraw));
-        privateOptions.add(new Option("Get statement",this.activeUser::getStatement));
+        //privateOptions.add(new Option("Get statement",this.activeUser::getStatement));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
     }
@@ -77,7 +77,7 @@ public class Menu {
     public void deposit() {
         System.out.println("How much would you like to deposit?");
         double amount = keyboardInput.nextDouble();
-        activeUser.deposit(amount); // User class still needs to implement
+        //activeUser.deposit(amount); // User class still needs to implement
         System.out.println("Success! Your new balance is: " + activeUser.getBalance());
     }
 
@@ -85,7 +85,7 @@ public class Menu {
         System.out.println("How much would you like to withdraw?");
         double amount = keyboardInput.nextDouble();
         if (activeUser.getBalance() >= amount) {
-            activeUser.withdraw(amount); // User class still needs to implement
+            //activeUser.withdraw(amount); // User class still needs to implement
             System.out.println("Successfully withdrew" + amount + "! Here is your cash: $$$");
         } else {
             System.out.println("There is insufficient balance in your account to cover the withdraw...");
@@ -116,9 +116,7 @@ public class Menu {
         String password = keyboardInput.nextLine();
     
         if (dataHandler.doesUserExist(username)) {
-            User requestedAccount = dataHandler.getUserData(username);
-            if (requestedAccount.getHashedPassword().equals(Menu.hashPassword(password))) {
-                this.activeUser = requestedAccount;
+            if(authenticateUserPass(username, password)) {
                 System.out.println("Login successful!");
             } else {
                 System.out.println("Login failed: password hashes do not match");
@@ -126,6 +124,15 @@ public class Menu {
         } else {
             System.out.println("Login failed: user does not exist");
         }
+    }
+
+    public boolean authenticateUserPass(String username,String password) {
+        User requestedAccount = dataHandler.getUserData(username);
+        if (requestedAccount.getHashedPassword().equals(Menu.hashPassword(password))) {
+            this.activeUser = requestedAccount;
+            return true;
+        }
+        return false;
     }
     
     private void signUp() {
@@ -141,14 +148,21 @@ public class Menu {
         if(!password.equals(passwordConfirmation)) {
             System.out.println("Passwords do not match, exiting...");
         } else {
-            if (!dataHandler.doesUserExist(username)) {
-                User userToRegister = new User(username,Menu.hashPassword(password),0);
-                this.activeUser = dataHandler.createUser(userToRegister);
+            if (createUser(username, passwordConfirmation, 0)) {
                 System.out.println("Account created successfully!");
             } else {
                 System.out.println("Account already exists.");
             }
         }
+    }
+
+    public boolean createUser(String username, String password, double balance) {
+        if (!dataHandler.doesUserExist(username)) {
+            User userToRegister = new User(username,Menu.hashPassword(password),balance);
+            this.activeUser = dataHandler.createUser(userToRegister);
+            return true;
+        }
+        return false;
     }
 
     public void logOut() {
