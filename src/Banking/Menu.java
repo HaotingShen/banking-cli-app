@@ -5,19 +5,29 @@ import java.security.NoSuchAlgorithmException;
 
 public class Menu {
     
-    private Database datahandler;
+    private Database dataHandler;
     private User activeUser;
 
     public Menu() {
-        this.datahandler = new Database();
+        this.dataHandler = new Database();
         this.activeUser = null;
     }
 
-    public boolean authenticate_user_pass(String username, String password) {
+    public boolean createUser(String username, String password, int balance = 0) {
+        if (dataHandler.doesUserExist(username)) {
+            return false; // user already exists
+        }
+        User newUser = new User(username,password,balance);
+        dataHandler.createUser(newUser);
+        this.activeUser = newUser;
+        return true;
+    }
+
+    public boolean authenticateUserPass(String username, String password) {
         // check if user exists
-        if (datahandler.does_userexist(username)) {
+        if (dataHandler.doesUserexist(username)) {
             // get user data
-            User requestedAccount = datahandler.get_userdata(username);
+            User requestedAccount = dataHandler.getUserdata(username);
             // check if password matches hashes
             try {
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -30,7 +40,7 @@ public class Menu {
                 }
 
                 String hashedPassword = sb.toString();
-                if (requestedAccount.get_hashed_password().equals(hashedPassword)) {
+                if (requestedAccount.getHashedPassword().equals(hashedPassword)) {
                     this.activeUser = requestedAccount;
                     return true;
                 }
