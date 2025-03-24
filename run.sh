@@ -18,5 +18,5 @@ fi
 
 # Run the Menu class
 echo "Running the program..."
-java -cp bin Banking.Menu
+java -cp bin Banking.BankingApp
 
