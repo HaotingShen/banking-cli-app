@@ -1,5 +1,5 @@
-package banking; // changed from "Banking"
 
+package Banking;
 import java.util.Date;
 
 public class Transaction {
@@ -22,5 +22,6 @@ public class Transaction {
     public String getDescription() { 
         return description; 
     }
+
 }
 
