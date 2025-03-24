@@ -9,18 +9,17 @@ import java.util.*;
 class User {
 
     private String username;
-    private String password;
+    private String hashedPassword;
     private double balance;
     private List<Transaction> transactionHistory;
-    User(String username, String password, double balance) {
+    User(String username, String hashedPassword, double balance) {
         this.username = username;
-        this.password = password;
+        this.hashedPassword = hashedPassword;
         this.balance = balance;
         this.transactionHistory = new ArrayList<>();
     }
     public Object getHashedPassword() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getHashedPassword'");
+        return hashedPassword;
     }
 
     public String getUsername() {
@@ -38,13 +37,13 @@ class User {
         User user = (User) obj;
         return Double.compare(user.balance, balance) == 0 &&
                username.equals(user.username) &&
-               password.equals(user.password);
+               hashedPassword.equals(user.hashedPassword);
     }
 
     //override user hashcode
     @Override
     public int hashCode() {
-        return Objects.hash(username, password, balance);
+        return Objects.hash(username, hashedPassword, balance);
     }
     
     //Issue a charge
