@@ -6,13 +6,13 @@ package banking;
 
 import java.util.*;
 
-class User {
+public class User {
 
     private String username;
     private String hashedPassword;
     private double balance;
     private List<Transaction> transactionHistory;
-    User(String username, String hashedPassword, double balance) {
+    public User(String username, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;

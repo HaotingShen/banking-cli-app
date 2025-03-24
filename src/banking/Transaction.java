@@ -1,5 +1,4 @@
-
-package Banking;
+package banking;
 import java.util.Date;
 
 public class Transaction {

@@ -4,7 +4,8 @@ import java.util.Map;
 import java.security.MessageDigest;
 
 public class Database {
-    Map<String, User> mapToUser;
+    private Map<String, User> mapToUser;
+    
     public Database(){
         mapToUser = new HashMap<>();
 

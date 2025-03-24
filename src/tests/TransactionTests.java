@@ -2,7 +2,7 @@ package tests;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
-import Banking.Transaction;
+import banking.Transaction;
 
 public class TransactionTests {
 
