@@ -1,6 +1,7 @@
 package banking;
 import java.util.HashMap;
 import java.util.Map;
+import java.security.MessageDigest;
 
 public class Database {
     Map<String, User> mapToUser;
@@ -17,9 +18,8 @@ public class Database {
         return null;
     }
 
-    public User createUser(String username, String password, double balance){
-        User newUser = new User(username, password, balance);
-        mapToUser.put(username, newUser);
+    public User createUser(User newUser){
+        mapToUser.put(newUser.getUsername(), newUser);
         return newUser;
 
 
