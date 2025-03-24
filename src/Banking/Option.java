@@ -9,10 +9,12 @@ public class Option {
         this.optionCall = optionCall;
     }
 
-    public void execute() {
+    public boolean execute() {
         if (optionCall != null) {
             optionCall.run();
+            return true;
         }
+        return false;
     }
 
     public String getOptionName() {
