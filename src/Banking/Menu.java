@@ -26,10 +26,12 @@ public class Menu {
         publicOptions.add(new Option("Create account", this::signUp));
         publicOptions.add(new Option("Exit",this::shutDown));
         this.privateOptions = new ArrayList<>();
-        publicOptions.add(new Option("Check Balance",this::getBalance));
-        publicOptions.add(new Option("Deposit",this::deposit));
-        publicOptions.add(new Option("Withdraw",this::withdraw));
-        publicOptions.add(new Option("Logout",this::logOut));
+        privateOptions.add(new Option("Check Balance",this::getBalance));
+        privateOptions.add(new Option("Issue Charge",this::issueCharge));
+        privateOptions.add(new Option("Deposit",this::deposit));
+        privateOptions.add(new Option("Withdraw",this::withdraw));
+        privateOptions.add(new Option("Get statement",this.activeUser::getStatement));
+        privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
     }
 
@@ -56,10 +58,22 @@ public class Menu {
         System.out.print("Your balance is currently : "+ activeUser.getBalance());
     }
 
+    public void issueCharge() {
+        System.out.print("Who would you like to charge (their user_id): ");
+        int subject = keyboardInput.nextInt();
+        System.out.print("Charge amount: ");
+        double chargeAmount = keyboardInput.nextDouble();
+        System.out.print("Charge description: ");
+        String chargeDesc = keyboardInput.nextLine();
+        activeUser.issueCharge(chargeAmount, chargeDesc); 
+        // User class needs to implement charge targets , although maybe should be a database function since it requires authorization
+        System.out.println("Charge issued.");
+    }
+
     public void deposit() {
         System.out.println("How much would you like to deposit?");
         double amount = keyboardInput.nextDouble();
-        activeUser.deposit(amount);
+        activeUser.deposit(amount); // User class still needs to implement
         System.out.println("Success! Your new balance is: " + activeUser.getBalance());
     }
 
@@ -67,7 +81,7 @@ public class Menu {
         System.out.println("How much would you like to withdraw?");
         double amount = keyboardInput.nextDouble();
         if (activeUser.getBalance() >= amount) {
-            activeUser.withdraw(amount);
+            activeUser.withdraw(amount); // User class still needs to implement
             System.out.println("Successfully withdrew" + amount + "! Here is your cash: $$$");
         } else {
             System.out.println("There is insufficient balance in your account to cover the withdraw...");
@@ -123,8 +137,9 @@ public class Menu {
         if(!password.equals(passwordConfirmation)) {
             System.out.println("Passwords do not match, exiting...");
         } else {
-            if (dataHandler.doesUserExist(username)) {
-                dataHandler.createUser(username,password,0);
+            if (!dataHandler.doesUserExist(username)) {
+                User userToRegister = new User(username,Menu.hashPassword(password),0);
+                this.activeUser = dataHandler.createUser(userToRegister);
                 System.out.println("Account created successfully!");
             } else {
                 System.out.println("Account already exists.");
