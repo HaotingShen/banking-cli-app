@@ -1,11 +1,9 @@
 package banking;
-import banking.Database; //future class, handle reading from our files for persistence
-import banking.Option;
-import java.security.MessageDigest;
+import java.security.MessageDigest; //future class, handle reading from our files for persistence
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.ArrayList;
 
 public class Menu {
     
@@ -30,7 +28,7 @@ public class Menu {
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Deposit",this::deposit));
         privateOptions.add(new Option("Withdraw",this::withdraw));
-        //privateOptions.add(new Option("Get statement",this.activeUser::getStatement));
+        privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
     }
@@ -65,18 +63,42 @@ public class Menu {
     public void issueCharge() {
         System.out.print("Who would you like to charge (their user_id): ");
         String nameOfUserToCharge = keyboardInput.nextLine();
+
         if(!dataHandler.doesUserExist(nameOfUserToCharge)) {
         	System.out.println("No such user");
         	return;
         }
+
         User userToCharge = dataHandler.getUserData(nameOfUserToCharge);
         System.out.print("Charge amount: ");
-        double chargeAmount = keyboardInput.nextDouble();  //TODO: handle exception when user input is not double
+        double chargeAmount;
+        try {
+            chargeAmount = keyboardInput.nextDouble();
+        } catch (Exception e) {
+            System.out.println("Invalid amount. Please enter a number.");
+            keyboardInput.nextLine();
+            return;
+        }
+
+        keyboardInput.nextLine();
         System.out.print("Charge description: ");
         String chargeDesc = keyboardInput.nextLine();
         Transaction newTransaction = userToCharge.issueCharge(chargeAmount, chargeDesc); 
-        if(newTransaction != null)System.out.println("Charge issued.");
+        if (newTransaction != null) {
+            dataHandler.addUserTransaction(userToCharge.getUsername(), newTransaction); //add transaction history to DB
+            System.out.println("Charge issued.");
+        }
         // User class needs to implement charge targets , although maybe should be a database function since it requires authorization
+        // Could be in the 2ed interation
+    }
+
+    public void printStatement() {
+        if(activeUser != null) {
+            List<Transaction> transactions = dataHandler.getUserTransaction(
+                activeUser.getUsername()
+            );
+            activeUser.printStatement(transactions);
+        }
     }
 
     public void deposit() {

@@ -11,12 +11,10 @@ public class User {
     private String username;
     private String hashedPassword;
     private double balance;
-    private List<Transaction> transactionHistory;
     public User(String username, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;
-        this.transactionHistory = new ArrayList<>();
     }
     public Object getHashedPassword() {
         return hashedPassword;
@@ -51,7 +49,6 @@ public class User {
         if (amount > 0 && balance >= amount) {
             balance -= amount;
             Transaction newTransaction = new Transaction(-amount, "Charge: " + description);
-            transactionHistory.add(newTransaction);
             return newTransaction;
         } 
         else if (amount <= 0) {
@@ -71,7 +68,6 @@ public class User {
     	if(amount>0) {
     		balance += amount;
     		Transaction newTransaction = new Transaction(amount, "Deposit");
-    		transactionHistory.add(newTransaction);
     		return newTransaction;
     	}else System.out.println("Charge amount invalid.");
     	return null;
@@ -82,23 +78,21 @@ public class User {
     	if(amount < balance) {
     		balance -= amount;
     		Transaction newTransaction = new Transaction(amount, "Withdraw");
-    		transactionHistory.add(newTransaction);
     		return newTransaction;
     	}else System.out.println("Insufficient balance.");
     	return null;
     }
 
     //Request statement
-    public void printStatement() {
+    public void printStatement(List<Transaction> transactions) {
         System.out.println("\n--- Account Statement ---");
-        for (Transaction t : transactionHistory) {
-            System.out.printf("[%s] %s: $%.2f\n", t.getDate(), t.getDescription(), t.getAmount());
+        if(transactions != null) {
+            for (Transaction t : transactions) {
+                System.out.printf("[%s] %s: $%.2f\n", 
+                    t.getDate(), t.getDescription(), t.getAmount());
+            }
         }
         System.out.printf("Current Balance: $%.2f\n", balance);
-    }
-
-    public List<Transaction> getTransactionHistory() {
-        return transactionHistory;
     }
     
 }
