@@ -1,5 +1,8 @@
 package tests;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -10,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import banking.Database;
 import banking.Menu;
+import banking.Transaction;
 import banking.User;
 
 public class MenuTests {
@@ -83,6 +87,73 @@ public class MenuTests {
         assertTrue(testUser.getBalance() == 120.00);
 
         this.menu.getDataHandler().deleteUser("Test");
+
+    void testUserCreationFailsForExistingUser() {
+        this.menu.createUser("Test", "password", 0);
+        boolean success = this.menu.createUser("Test", "password", 0);
+        assertTrue(!success);
+    }
+    
+    @Test
+    void testLogOut() {
+        this.menu.createUser("Test", "password", 0);
+        this.menu.logOut();
+        assertNull(menu.getActiveUser()); // Active user should be null after logout
+    }
+    
+    @Test
+    void testGetBalance() {
+        User testUser = new User("Test", Menu.hashPassword("password"), 100.0);
+        this.menu.getDataHandler().createUser(testUser);
+        this.menu.authenticateUserPass("Test", "password");
+
+        assertEquals(100.0, testUser.getBalance(), 0.01);
+    }
+
+    @Test
+    void testDeposit() {
+        User testUser = new User("Test", Menu.hashPassword("password"), 0);
+        this.menu.getDataHandler().createUser(testUser);
+        this.menu.authenticateUserPass("Test", "password");
+
+        Transaction depositTransaction = testUser.deposit(200.0);
+        assertNotNull(depositTransaction);
+        assertEquals(200.0, testUser.getBalance(), 0.01);
+    }
+
+    @Test
+    void testWithdraw() {
+        User testUser = new User("Test", Menu.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(testUser);
+        this.menu.authenticateUserPass("Test", "password");
+
+        Transaction withdrawTransaction = testUser.withdraw(100.0);
+        assertNotNull(withdrawTransaction);
+        assertEquals(400.0, testUser.getBalance(), 0.01);
+    }
+
+    @Test
+    void testWithdrawFailsForInsufficientBalance() {
+        User testUser = new User("Test", Menu.hashPassword("password"), 50);
+        this.menu.getDataHandler().createUser(testUser);
+        this.menu.authenticateUserPass("Test", "password");
+
+        Transaction withdrawTransaction = testUser.withdraw(100.0);
+        assertNull(withdrawTransaction);
+        assertEquals(50.0, testUser.getBalance(), 0.01);
+    }
+
+    @Test
+    void testIssueCharge() {
+        User testUser = new User("Test", Menu.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(testUser);
+        this.menu.authenticateUserPass("Test", "password");
+
+        testUser.issueCharge(50.0, "Service Fee");
+
+        assertEquals(450.0, testUser.getBalance(), 0.01);
     }
 
 }
+
+    

@@ -80,10 +80,11 @@ public class User {
     }
     
     //Issue a charge
-    public void issueCharge(double amount, String description) {
+    public Transaction issueCharge(double amount, String description) {
         if (amount > 0 && balance >= amount) {
             balance -= amount;
-            transactionHistory.add(new Transaction(-amount, "Charge: " + description));
+            Transaction newTransaction = new Transaction(-amount, "Charge: " + description);
+            return newTransaction;
         } 
         else if (amount <= 0) {
             System.out.println("Charge amount invalid.");
@@ -94,19 +95,39 @@ public class User {
         else {
             System.out.println("An error occurred. Please try again later.");
         }
+        return null;
+    }
+    
+    //deposit amount
+    public Transaction deposit(double amount) {
+    	if(amount>0) {
+    		balance += amount;
+    		Transaction newTransaction = new Transaction(amount, "Deposit");
+    		return newTransaction;
+    	}else System.out.println("Charge amount invalid.");
+    	return null;
+    }
+
+    //withdraw amount
+    public Transaction withdraw(double amount) {
+    	if(amount < balance) {
+    		balance -= amount;
+    		Transaction newTransaction = new Transaction(amount, "Withdraw");
+    		return newTransaction;
+    	}else System.out.println("Insufficient balance.");
+    	return null;
     }
 
     //Request statement
-    public void printStatement() {
+    public void printStatement(List<Transaction> transactions) {
         System.out.println("\n--- Account Statement ---");
-        for (Transaction t : transactionHistory) {
-            System.out.printf("[%s] %s: $%.2f\n", t.getDate(), t.getDescription(), t.getAmount());
+        if(transactions != null) {
+            for (Transaction t : transactions) {
+                System.out.printf("[%s] %s: $%.2f\n", 
+                    t.getDate(), t.getDescription(), t.getAmount());
+            }
         }
         System.out.printf("Current Balance: $%.2f\n", balance);
-    }
-
-    public List<Transaction> getTransactionHistory() {
-        return transactionHistory;
     }
     
 }
