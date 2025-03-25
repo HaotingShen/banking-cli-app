@@ -25,9 +25,9 @@ public class Menu {
         publicOptions.add(new Option("Exit",this::shutDown));
         this.privateOptions = new ArrayList<>();
         privateOptions.add(new Option("Check Balance",this::getBalance));
-        privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Deposit",this::deposit));
         privateOptions.add(new Option("Withdraw",this::withdraw));
+        privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
@@ -88,8 +88,6 @@ public class Menu {
             dataHandler.addUserTransaction(userToCharge.getUsername(), newTransaction); //add transaction history to DB
             System.out.println("Charge issued.");
         }
-        // User class needs to implement charge targets , although maybe should be a database function since it requires authorization
-        // Could be in the 2ed iteration
     }
 
     public void printStatement() {
@@ -107,8 +105,8 @@ public class Menu {
         Transaction newTransaction = activeUser.deposit(amount);
         if(newTransaction!=null) {
         	dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
-        	System.out.println("Success! Your new balance is: " + activeUser.getBalance());
-        }else {
+        }
+        else {
         	System.out.println("Invalid amount deposited!");
         }
     }
