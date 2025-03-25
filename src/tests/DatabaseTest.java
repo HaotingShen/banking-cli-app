@@ -27,21 +27,21 @@ public class DatabaseTest {
 
     @Test
     void testCreateUser() {
-    	User testUser = new User("Test", "password", 0);
+    	User testUser = new User("Test", "123", "password", 0);
         myDatabase.createUser(testUser);
         assertEquals(true, myDatabase.doesUserExist("Test"));
     }
 
     @Test
     void testGetUser() {
-    	User testUser = new User("Test", "password", 0);
+    	User testUser = new User("Test","123", "password", 0);
         User curUser = myDatabase.createUser(testUser);
         assertEquals(curUser, myDatabase.getUserData("Test"));
     }
 
     @Test
     void testDeleteUser() throws Exception {
-    	User testUser = new User("Test", "password", 0);
+    	User testUser = new User("Test", "123", "password", 0);
         User curUser = myDatabase.createUser(testUser);
         myDatabase.deleteUser("Test");
         assertEquals(false, myDatabase.doesUserExist("Test"));
