@@ -64,14 +64,19 @@ public class Menu {
 
     public void issueCharge() {
         System.out.print("Who would you like to charge (their user_id): ");
-        int subject = keyboardInput.nextInt();
+        String nameOfUserToCharge = keyboardInput.nextLine();
+        if(!dataHandler.doesUserExist(nameOfUserToCharge)) {
+        	System.out.println("No such user");
+        	return;
+        }
+        User userToCharge = dataHandler.getUserData(nameOfUserToCharge);
         System.out.print("Charge amount: ");
-        double chargeAmount = keyboardInput.nextDouble();
+        double chargeAmount = keyboardInput.nextDouble();  //TODO: handle exception when user input is not double
         System.out.print("Charge description: ");
         String chargeDesc = keyboardInput.nextLine();
-        activeUser.issueCharge(chargeAmount, chargeDesc); 
+        Transaction newTransaction = userToCharge.issueCharge(chargeAmount, chargeDesc); 
+        if(newTransaction != null)System.out.println("Charge issued.");
         // User class needs to implement charge targets , although maybe should be a database function since it requires authorization
-        System.out.println("Charge issued.");
     }
 
     public void deposit() {
@@ -93,7 +98,7 @@ public class Menu {
         Transaction newTransaction = activeUser.withdraw(amount);
         if (newTransaction!=null) {
             dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
-            System.out.println("Successfully withdrew" + amount + "! Here is your cash: $$$");
+            System.out.println("Successfully withdrew " + amount + "! Here is your cash $$$ Your new balance is: " + activeUser.getBalance());
         } else {
             System.out.println("There is insufficient balance in your account to cover the withdraw...");
         }
@@ -164,6 +169,7 @@ public class Menu {
         }
     }
 
+ 
     public boolean createUser(String username, String password, double balance) {
         if (!dataHandler.doesUserExist(username)) {
             User userToRegister = new User(username,Menu.hashPassword(password),balance);

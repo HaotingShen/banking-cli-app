@@ -47,10 +47,12 @@ public class User {
     }
     
     //Issue a charge
-    public void issueCharge(double amount, String description) {
+    public Transaction issueCharge(double amount, String description) {
         if (amount > 0 && balance >= amount) {
             balance -= amount;
-            transactionHistory.add(new Transaction(-amount, "Charge: " + description));
+            Transaction newTransaction = new Transaction(-amount, "Charge: " + description);
+            transactionHistory.add(newTransaction);
+            return newTransaction;
         } 
         else if (amount <= 0) {
             System.out.println("Charge amount invalid.");
@@ -61,6 +63,7 @@ public class User {
         else {
             System.out.println("An error occurred. Please try again later.");
         }
+        return null;
     }
     
     //deposit amount
