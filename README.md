@@ -4,7 +4,7 @@ Team Members:
 
 * 
 *
-*
+* Haoting Shen
 * Ica Chen
 
 For each iteration you should answer the following:
@@ -32,7 +32,9 @@ What user stories do you intend to complete next iteration?
 8. A menu should include and print instructions for all options users have
 
 Is there anything that you implemented but doesn't currently work?
+
 NA.
 
 What commands are needed to compile and run your code from the command line (please provide a script that users can run to launch your program)?
+
 simply clone and then input "./run.sh" in command line;
