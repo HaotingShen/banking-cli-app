@@ -1,11 +1,9 @@
 package banking;
-import banking.Database; //future class, handle reading from our files for persistence
-import banking.Option;
-import java.security.MessageDigest;
+import java.security.MessageDigest; //future class, handle reading from our files for persistence
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.ArrayList;
 
 public class Menu {
     
@@ -30,7 +28,7 @@ public class Menu {
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Deposit",this::deposit));
         privateOptions.add(new Option("Withdraw",this::withdraw));
-        //privateOptions.add(new Option("Get statement",this.activeUser::getStatement));
+        privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
     }
@@ -59,34 +57,69 @@ public class Menu {
     }
 
     public void getBalance() {
-        System.out.print("Your balance is currently : "+ activeUser.getBalance());
+        System.out.printf("Your balance is currently: %.2f%n", activeUser.getBalance());//added precision for double
     }
 
     public void issueCharge() {
         System.out.print("Who would you like to charge (their user_id): ");
-        int subject = keyboardInput.nextInt();
+        String nameOfUserToCharge = keyboardInput.nextLine();
+
+        if(!dataHandler.doesUserExist(nameOfUserToCharge)) {
+        	System.out.println("No such user");
+        	return;
+        }
+
+        User userToCharge = dataHandler.getUserData(nameOfUserToCharge);
         System.out.print("Charge amount: ");
-        double chargeAmount = keyboardInput.nextDouble();
+        double chargeAmount;
+        try {
+            chargeAmount = keyboardInput.nextDouble();
+        } catch (Exception e) {
+            System.out.println("Invalid amount. Please enter a number.");
+            keyboardInput.nextLine();
+            return;
+        }
+
+        keyboardInput.nextLine();
         System.out.print("Charge description: ");
         String chargeDesc = keyboardInput.nextLine();
-        activeUser.issueCharge(chargeAmount, chargeDesc); 
+        Transaction newTransaction = userToCharge.issueCharge(chargeAmount, chargeDesc); 
+        if (newTransaction != null) {
+            dataHandler.addUserTransaction(userToCharge.getUsername(), newTransaction); //add transaction history to DB
+            System.out.println("Charge issued.");
+        }
         // User class needs to implement charge targets , although maybe should be a database function since it requires authorization
-        System.out.println("Charge issued.");
+        // Could be in the 2ed interation
+    }
+
+    public void printStatement() {
+        if(activeUser != null) {
+            List<Transaction> transactions = dataHandler.getUserTransaction(
+                activeUser.getUsername()
+            );
+            activeUser.printStatement(transactions);
+        }
     }
 
     public void deposit() {
         System.out.println("How much would you like to deposit?");
         double amount = keyboardInput.nextDouble();
-        activeUser.deposit(amount); // User class still needs to implement
-        //System.out.println("Success! Your new balance is: " + activeUser.getBalance());
+        Transaction newTransaction = activeUser.deposit(amount);
+        if(newTransaction!=null) {
+        	dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
+        	System.out.println("Success! Your new balance is: " + activeUser.getBalance());
+        }else {
+        	System.out.println("Invalid amount deposited!");
+        }
     }
 
     public void withdraw() {
         System.out.println("How much would you like to withdraw?");
         double amount = keyboardInput.nextDouble();
-        if (activeUser.getBalance() >= amount) {
-            //activeUser.withdraw(amount); // User class still needs to implement
-            System.out.println("Successfully withdrew" + amount + "! Here is your cash: $$$");
+        Transaction newTransaction = activeUser.withdraw(amount);
+        if (newTransaction!=null) {
+            dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
+            System.out.println("Successfully withdrew " + amount + "! Here is your cash $$$ Your new balance is: " + activeUser.getBalance());
         } else {
             System.out.println("There is insufficient balance in your account to cover the withdraw...");
         }
@@ -136,7 +169,7 @@ public class Menu {
         return false;
     }
     
-    private void signUp() {
+    public void signUp() {
         System.out.println("Enter new username: ");
         String username = keyboardInput.nextLine();
 
@@ -159,6 +192,7 @@ public class Menu {
             }
         }
     }
+
 
     public boolean createUser(String username, String accountNumber, String password, double balance) {
         if (!dataHandler.doesUserExist(username)) {
@@ -190,6 +224,10 @@ public class Menu {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not found.");
         }
-}
+    }
+    
+    public User getActiveUser() {
+    	return activeUser;
+    }
 
 }
