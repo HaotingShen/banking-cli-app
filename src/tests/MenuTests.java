@@ -62,4 +62,27 @@ public class MenuTests {
             this.menu.getDataHandler().deleteUser("Test");
         }
     }
+    
+    @Test
+    void testDepositAndWithdraw() throws Exception {
+        User testUser = new User("Test", "123", "passeord", 100.00);
+        this.menu.getDataHandler().createUser(testUser);
+        
+
+        this.menu.authenticateUserPass("Test", "password");
+
+        double depositAmount = 50.00;
+        testUser.deposit(depositAmount);
+        assertTrue(testUser.getBalance() == 150.00);
+
+        double withdrawAmount = 30.00;
+        testUser.withdraw(withdrawAmount);
+        assertTrue(testUser.getBalance() == 120.00);
+
+        testUser.withdraw(999.00);
+        assertTrue(testUser.getBalance() == 120.00);
+
+        this.menu.getDataHandler().deleteUser("Test");
+    }
+
 }
