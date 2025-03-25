@@ -33,6 +33,11 @@ public class User {
         return accountNumber;
     }
     
+    public static String constructUniqueAccountNumber(String accountNumber) {
+        UUID uuid = UUID.nameUUIDFromBytes(accountNumber.getBytes());
+        return uuid.toString();
+    }
+    
     public void deposit(double amount) {
         if (amount > 0) {
             balance += amount;

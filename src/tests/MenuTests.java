@@ -65,7 +65,7 @@ public class MenuTests {
     
     @Test
     void testDepositAndWithdraw() throws Exception {
-        User testUser = new User("Test", "123", "passeord", 100.00);
+        User testUser = new User("Test", "123", "password", 100.00);
         this.menu.getDataHandler().createUser(testUser);
         
 

@@ -156,7 +156,8 @@ public class Menu {
 
     public boolean createUser(String username, String accountNumber, String password, double balance) {
         if (!dataHandler.doesUserExist(username)) {
-            User userToRegister = new User(username,accountNumber, Menu.hashPassword(password),balance);
+        	String uniqueAccountNumber = User.constructUniqueAccountNumber(accountNumber);
+            User userToRegister = new User(username,uniqueAccountNumber, Menu.hashPassword(password),balance);
             this.activeUser = dataHandler.createUser(userToRegister);
             return true;
         }
