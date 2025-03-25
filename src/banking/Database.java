@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.security.MessageDigest;
+import banking.Transaction;
+
 
 public class Database {
     private Map<String, User> mapToUser;

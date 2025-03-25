@@ -89,7 +89,7 @@ public class Menu {
             System.out.println("Charge issued.");
         }
         // User class needs to implement charge targets , although maybe should be a database function since it requires authorization
-        // Could be in the 2ed interation
+        // Could be in the 2ed iteration
     }
 
     public void printStatement() {
@@ -119,9 +119,6 @@ public class Menu {
         Transaction newTransaction = activeUser.withdraw(amount);
         if (newTransaction!=null) {
             dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
-            System.out.println("Successfully withdrew " + amount + "! Here is your cash $$$ Your new balance is: " + activeUser.getBalance());
-        } else {
-            System.out.println("There is insufficient balance in your account to cover the withdraw...");
         }
     }
 
@@ -173,8 +170,6 @@ public class Menu {
         System.out.println("Enter new username: ");
         String username = keyboardInput.nextLine();
 
-        System.out.println("Enter new accountNumber: ");
-        String accountNumber = keyboardInput.nextLine();
     
         System.out.println("Enter password: ");
         String password = keyboardInput.nextLine();
@@ -185,7 +180,7 @@ public class Menu {
         if(!password.equals(passwordConfirmation)) {
             System.out.println("Passwords do not match, exiting...");
         } else {
-            if (createUser(username,accountNumber, passwordConfirmation, 0)) {
+            if (createUser(username, passwordConfirmation, 0)) {
                 System.out.println("Account created successfully!");
             } else {
                 System.out.println("Account already exists.");
@@ -194,9 +189,9 @@ public class Menu {
     }
 
 
-    public boolean createUser(String username, String accountNumber, String password, double balance) {
+    public boolean createUser(String username, String password, double balance) {
         if (!dataHandler.doesUserExist(username)) {
-            User userToRegister = new User(username,accountNumber, Menu.hashPassword(password),balance);
+            User userToRegister = new User(username, Menu.hashPassword(password), balance);
             this.activeUser = dataHandler.createUser(userToRegister);
             return true;
         }
