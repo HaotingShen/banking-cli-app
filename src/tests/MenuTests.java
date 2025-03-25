@@ -43,7 +43,7 @@ public class MenuTests {
         }
         String hashedPassword = sb.toString();
 
-        User testUser = new User("Test", "123",hashedPassword,0);
+        User testUser = new User("Test",hashedPassword,0);
         
         this.menu.getDataHandler().createUser(testUser);
         try {
@@ -58,7 +58,7 @@ public class MenuTests {
     @Test
     void testUserCreation() throws Exception {
     	
-        boolean success = this.menu.createUser("Test","123","password",0);
+        boolean success = this.menu.createUser("Test","password",0);
         try {
             assertTrue(success);
             this.menu.getDataHandler().deleteUser("Test");
@@ -67,6 +67,28 @@ public class MenuTests {
         }
     }
     
+    @Test
+    void testDepositAndWithdraw() throws Exception {
+        User testUser = new User("Test", "password", 100.00);
+        this.menu.getDataHandler().createUser(testUser);
+        
+
+        this.menu.authenticateUserPass("Test", "password");
+
+        double depositAmount = 50.00;
+        testUser.deposit(depositAmount);
+        assertTrue(testUser.getBalance() == 150.00);
+
+        double withdrawAmount = 30.00;
+        testUser.withdraw(withdrawAmount);
+        assertTrue(testUser.getBalance() == 120.00);
+
+        testUser.withdraw(999.00);
+        assertTrue(testUser.getBalance() == 120.00);
+
+        this.menu.getDataHandler().deleteUser("Test");
+    }
+
     @Test
     void testUserCreationFailsForExistingUser() {
         this.menu.createUser("Test", "password", 0);

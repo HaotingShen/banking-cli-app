@@ -5,6 +5,7 @@ package banking;
  */
 
 import java.util.*;
+import banking.Transaction;
 
 public class User {
 
@@ -14,7 +15,7 @@ public class User {
     private List<Transaction> transactionHistory;
     private String accountNumber;
     
-    public User(String username, String accountNumber, String hashedPassword, double balance) {
+    public User(String username, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;
@@ -33,14 +34,12 @@ public class User {
         return accountNumber;
     }
     
-    public void deposit(double amount) {
-        if (amount > 0) {
-            balance += amount;
-            System.out.println("Deposit successful. New balance: " + balance);
-        } else {
-            System.out.println("Deposit amount must be positive.");
-        }
+
+    public static String constructUniqueAccountNumber(String accountNumber) {
+        UUID uuid = UUID.nameUUIDFromBytes(accountNumber.getBytes());
+        return uuid.toString();
     }
+    
 
     public double getBalance() {
         return balance;
@@ -83,21 +82,31 @@ public class User {
     
     //deposit amount
     public Transaction deposit(double amount) {
-    	if(amount>0) {
-    		balance += amount;
-    		Transaction newTransaction = new Transaction(amount, "Deposit");
-    		return newTransaction;
-    	}else System.out.println("Charge amount invalid.");
+    	if (amount > 0) {
+            balance += amount;
+            Transaction newTransaction = new Transaction(amount, "Deposit");
+            transactionHistory.add(newTransaction);
+            System.out.println("Deposit successful. New balance: " + balance);
+            return newTransaction;
+        } else {
+            System.out.println("Deposit amount must be positive.");
+        }
     	return null;
     }
 
     //withdraw amount
     public Transaction withdraw(double amount) {
-    	if(amount < balance) {
-    		balance -= amount;
-    		Transaction newTransaction = new Transaction(amount, "Withdraw");
-    		return newTransaction;
-    	}else System.out.println("Insufficient balance.");
+    	if (amount > 0 && balance >= amount) {
+            balance -= amount;
+            Transaction newTransaction = new Transaction(-amount, "Withdraw");
+            transactionHistory.add(newTransaction);
+            System.out.println("Withdrawal successful. New balance: " + balance);
+            return newTransaction;
+        } else if (amount <= 0) {
+            System.out.println("Withdrawal amount must be positive.");
+        } else {
+            System.out.println("Insufficient balance for withdrawal.");
+        }
     	return null;
     }
 
