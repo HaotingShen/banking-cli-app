@@ -18,12 +18,12 @@ What user stories were completed this iteration?
 5. An account should be able to withdraw
 6. A Database should be able to get and set user data
 7. A Database should be able to get and set transaction history
-8. An account should be able to issue a charge
+8. An account should be able to issue a charge to itself (e.g. a service fee) or to another user (e.g. a merchant charging a customer)
 9. An account should be able to request their statement
 
 What user stories do you intend to complete next iteration?
-1. Users should be tracked with persistence
-2. Transactions should be tracked with persistence
+1. Users should be saved persistently across sessions
+2. Transactions should be saved persistently across sessions
 3. A user should have a unique ID
 4. A user should be able to reset password
 5. A user should be able to transfer money to another user
