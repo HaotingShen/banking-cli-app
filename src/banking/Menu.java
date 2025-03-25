@@ -59,7 +59,7 @@ public class Menu {
     }
 
     public void getBalance() {
-        System.out.print("Your balance is currently : "+ activeUser.getBalance());
+        System.out.printf("Your balance is currently: %.2f%n", activeUser.getBalance());//added precision for double
     }
 
     public void issueCharge() {
@@ -77,15 +77,22 @@ public class Menu {
     public void deposit() {
         System.out.println("How much would you like to deposit?");
         double amount = keyboardInput.nextDouble();
-        //activeUser.deposit(amount); // User class still needs to implement
-        System.out.println("Success! Your new balance is: " + activeUser.getBalance());
+        Transaction newTransaction = activeUser.deposit(amount);
+        if(newTransaction!=null) {
+        	dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
+        	System.out.println("Success! Your new balance is: " + activeUser.getBalance());
+        }else {
+        	System.out.println("Invalid amount deposited!");
+        }
+        
     }
 
     public void withdraw() {
         System.out.println("How much would you like to withdraw?");
         double amount = keyboardInput.nextDouble();
-        if (activeUser.getBalance() >= amount) {
-            //activeUser.withdraw(amount); // User class still needs to implement
+        Transaction newTransaction = activeUser.withdraw(amount);
+        if (newTransaction!=null) {
+            dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
             System.out.println("Successfully withdrew" + amount + "! Here is your cash: $$$");
         } else {
             System.out.println("There is insufficient balance in your account to cover the withdraw...");
@@ -136,7 +143,7 @@ public class Menu {
         return false;
     }
     
-    private void signUp() {
+    public void signUp() {
         System.out.println("Enter new username: ");
         String username = keyboardInput.nextLine();
     
@@ -187,6 +194,10 @@ public class Menu {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm not found.");
         }
-}
+    }
+    
+    public User getActiveUser() {
+    	return activeUser;
+    }
 
 }

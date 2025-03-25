@@ -62,6 +62,28 @@ public class User {
             System.out.println("An error occurred. Please try again later.");
         }
     }
+    
+    //deposit amount
+    public Transaction deposit(double amount) {
+    	if(amount>0) {
+    		balance += amount;
+    		Transaction newTransaction = new Transaction(amount, "Deposit");
+    		transactionHistory.add(newTransaction);
+    		return newTransaction;
+    	}else System.out.println("Charge amount invalid.");
+    	return null;
+    }
+
+    //withdraw amount
+    public Transaction withdraw(double amount) {
+    	if(amount < balance) {
+    		balance -= amount;
+    		Transaction newTransaction = new Transaction(amount, "Withdraw");
+    		transactionHistory.add(newTransaction);
+    		return newTransaction;
+    	}else System.out.println("Insufficient balance.");
+    	return null;
+    }
 
     //Request statement
     public void printStatement() {
