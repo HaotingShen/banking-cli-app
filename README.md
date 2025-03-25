@@ -2,8 +2,8 @@
 
 Team Members:
 
-* 
-*
+* Amuka Shrestha
+* Tariq Jassim
 * Haoting Shen
 * Ica Chen
 
@@ -37,4 +37,4 @@ NA.
 
 What commands are needed to compile and run your code from the command line (please provide a script that users can run to launch your program)?
 
-simply clone and then input "./run.sh" in command line;
+simply clone, change to branch "dev" and then execute "./run.sh" on your command line;
