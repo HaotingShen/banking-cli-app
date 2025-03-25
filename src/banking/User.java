@@ -33,29 +33,12 @@ public class User {
         return accountNumber;
     }
     
-    public static String constructUniqueAccountNumber(String accountNumber) {
-        UUID uuid = UUID.nameUUIDFromBytes(accountNumber.getBytes());
-        return uuid.toString();
-    }
-    
     public void deposit(double amount) {
         if (amount > 0) {
             balance += amount;
             System.out.println("Deposit successful. New balance: " + balance);
         } else {
             System.out.println("Deposit amount must be positive.");
-        }
-    }
-    
-    public void withdraw(double amount) {
-        if (amount > 0 && balance >= amount) {
-            balance -= amount;
-            transactionHistory.add(new Transaction(-amount, "Withdrawal"));
-            System.out.println("Withdrawal successful. New balance: " + balance);
-        } else if (amount <= 0) {
-            System.out.println("Withdrawal amount must be positive.");
-        } else {
-            System.out.println("Insufficient balance for withdrawal.");
         }
     }
 
