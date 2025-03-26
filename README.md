@@ -29,7 +29,7 @@ What user stories do you intend to complete next iteration?
 5. A user should be able to transfer money to another user
 6. A user should be allowed to change username
 7. A transaction can be recalled
-8. A menu should include and print instructions for all options users have
+8. A banking app should validate user inputs
 
 Is there anything that you implemented but doesn't currently work?
 
