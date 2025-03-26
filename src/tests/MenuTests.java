@@ -156,6 +156,61 @@ public class MenuTests {
         assertEquals(450.0, testUser.getBalance(), 0.01);
     }
 
+    @Test
+    void testIssueChargeValidAmount() {
+        User userA = new User("UserA", Menu.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(userA);
+
+        Transaction chargeTransaction = userA.issueCharge(100.0, "Test charge");
+
+        assertNotNull(chargeTransaction);
+        assertEquals(-100.0, chargeTransaction.getAmount(), 0.01);
+        assertEquals(400.0, userA.getBalance(), 0.01);
+    }
+
+    @Test
+    void testIssueChargeInsufficientBalance() {
+        User userB = new User("UserB", Menu.hashPassword("password"), 50);
+        this.menu.getDataHandler().createUser(userB);
+
+        Transaction failedCharge = userB.issueCharge(100.0, "Overdrawn");
+
+        assertNull(failedCharge);
+        assertEquals(50.0, userB.getBalance(), 0.01);
+    }
+
+    @Test
+    void testIssueChargeInvalidAmount() {
+        User userC = new User("UserC", Menu.hashPassword("password"), 200);
+        this.menu.getDataHandler().createUser(userC);
+
+        Transaction zeroCharge = userC.issueCharge(0.0, "Zero");
+        Transaction negativeCharge = userC.issueCharge(-50.0, "Negative");
+
+        assertNull(zeroCharge);
+        assertNull(negativeCharge);
+        assertEquals(200.0, userC.getBalance(), 0.01);
+    }
+
+    @Test
+    void testPrintStatementIncludesCorrectTransactions() {
+        User userD = new User("UserD", Menu.hashPassword("password"), 0);
+        this.menu.getDataHandler().createUser(userD);
+        this.menu.authenticateUserPass("UserD", "password");
+
+        Transaction t1 = userD.deposit(100.0);
+        Transaction t2 = userD.issueCharge(50.0, "Test Service");
+
+        this.menu.getDataHandler().addUserTransaction(userD.getUsername(), t1);
+        this.menu.getDataHandler().addUserTransaction(userD.getUsername(), t2);
+
+        assertEquals(50.0, userD.getBalance(), 0.01);
+        assertEquals(2, this.menu.getDataHandler().getUserTransaction(userD.getUsername()).size());
+        assertEquals("Deposit", this.menu.getDataHandler().getUserTransaction(userD.getUsername()).get(0).getDescription());
+        assertTrue(this.menu.getDataHandler().getUserTransaction(userD.getUsername()).get(1).getDescription().contains("Test Service"));
+    }
+
+
 }
 
     

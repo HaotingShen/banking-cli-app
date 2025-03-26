@@ -5,22 +5,17 @@ package banking;
  */
 
 import java.util.*;
-import banking.Transaction;
 
 public class User {
 
     private String username;
     private String hashedPassword;
     private double balance;
-    private List<Transaction> transactionHistory;
-    private String accountNumber;
     
     public User(String username, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;
-        this.accountNumber = accountNumber;
-        this.transactionHistory = new ArrayList<>();
     }
     public Object getHashedPassword() {
         return hashedPassword;
@@ -29,18 +24,7 @@ public class User {
     public String getUsername() {
         return username;
     }
-
-    public String getAccountNumber() {
-        return accountNumber;
-    }
     
-
-    public static String constructUniqueAccountNumber(String accountNumber) {
-        UUID uuid = UUID.nameUUIDFromBytes(accountNumber.getBytes());
-        return uuid.toString();
-    }
-    
-
     public double getBalance() {
         return balance;
     }
@@ -85,8 +69,8 @@ public class User {
     	if (amount > 0) {
             balance += amount;
             Transaction newTransaction = new Transaction(amount, "Deposit");
-            transactionHistory.add(newTransaction);
-            System.out.println("Deposit successful. New balance: " + balance);
+            // transactionHistory.add(newTransaction);
+            System.out.println("Deposit successful. New balance: " + String.format("%.2f", balance));
             return newTransaction;
         } else {
             System.out.println("Deposit amount must be positive.");
@@ -99,8 +83,8 @@ public class User {
     	if (amount > 0 && balance >= amount) {
             balance -= amount;
             Transaction newTransaction = new Transaction(-amount, "Withdraw");
-            transactionHistory.add(newTransaction);
-            System.out.println("Withdrawal successful. New balance: " + balance);
+            // transactionHistory.add(newTransaction);
+            System.out.println("Withdrawal successful. New balance: " + String.format("%.2f", balance));
             return newTransaction;
         } else if (amount <= 0) {
             System.out.println("Withdrawal amount must be positive.");
