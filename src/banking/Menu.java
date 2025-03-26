@@ -101,7 +101,14 @@ public class Menu {
 
     public void deposit() {
         System.out.println("How much would you like to deposit?");
-        double amount = keyboardInput.nextDouble();
+        double amount;
+        try {
+            amount = keyboardInput.nextDouble();
+        } catch (Exception e) {
+            System.out.println("Invalid amount. Please enter a number.");
+            keyboardInput.nextLine();
+            return;
+        }
         Transaction newTransaction = activeUser.deposit(amount);
         if(newTransaction!=null) {
         	dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
@@ -113,7 +120,14 @@ public class Menu {
 
     public void withdraw() {
         System.out.println("How much would you like to withdraw?");
-        double amount = keyboardInput.nextDouble();
+        double amount;
+        try {
+            amount = keyboardInput.nextDouble();
+        } catch (Exception e) {
+            System.out.println("Invalid amount. Please enter a number.");
+            keyboardInput.nextLine();
+            return;
+        }
         Transaction newTransaction = activeUser.withdraw(amount);
         if (newTransaction!=null) {
             dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);

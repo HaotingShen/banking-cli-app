@@ -5,7 +5,6 @@ package banking;
  */
 
 import java.util.*;
-import banking.Transaction;
 
 public class User {
 
@@ -34,13 +33,6 @@ public class User {
         return accountNumber;
     }
     
-
-    public static String constructUniqueAccountNumber(String accountNumber) {
-        UUID uuid = UUID.nameUUIDFromBytes(accountNumber.getBytes());
-        return uuid.toString();
-    }
-    
-
     public double getBalance() {
         return balance;
     }
@@ -86,7 +78,7 @@ public class User {
             balance += amount;
             Transaction newTransaction = new Transaction(amount, "Deposit");
             transactionHistory.add(newTransaction);
-            System.out.println("Deposit successful. New balance: " + balance);
+            System.out.println("Deposit successful. New balance: " + String.format("%.2f", balance));
             return newTransaction;
         } else {
             System.out.println("Deposit amount must be positive.");
@@ -100,7 +92,7 @@ public class User {
             balance -= amount;
             Transaction newTransaction = new Transaction(-amount, "Withdraw");
             transactionHistory.add(newTransaction);
-            System.out.println("Withdrawal successful. New balance: " + balance);
+            System.out.println("Withdrawal successful. New balance: " + String.format("%.2f", balance));
             return newTransaction;
         } else if (amount <= 0) {
             System.out.println("Withdrawal amount must be positive.");
