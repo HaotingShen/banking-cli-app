@@ -1,9 +1,10 @@
 package banking;
+import banking.SafeInput;
 import java.security.MessageDigest; //future class, handle reading from our files for persistence
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
+import java.util.function.Function;
 
 public class Menu {
     
@@ -11,11 +12,10 @@ public class Menu {
     private User activeUser;
     private List<Option> publicOptions;
     private List<Option> privateOptions;
-    private Scanner keyboardInput;
     private boolean running;
+    private SafeInput keyboardInput;
 
-
-    public Menu(Scanner keyboardInput, Database dataHandler) {
+    public Menu(Database dataHandler, SafeInput keyboardInput) {
         this.dataHandler = dataHandler;
         this.keyboardInput = keyboardInput;
         this.activeUser = null;
@@ -61,8 +61,8 @@ public class Menu {
     }
 
     public void issueCharge() {
-        System.out.print("Who would you like to charge (their user_id): ");
-        String nameOfUserToCharge = keyboardInput.nextLine();
+        // Since scanner returns Strings by default, just return any passed input.
+        String nameOfUserToCharge = keyboardInput.getSafeInput("Who would you like to charge (their user_id): ","",Function.identity());
 
         if(!dataHandler.doesUserExist(nameOfUserToCharge)) {
         	System.out.println("No such user");
@@ -70,19 +70,9 @@ public class Menu {
         }
 
         User userToCharge = dataHandler.getUserData(nameOfUserToCharge);
-        System.out.print("Charge amount: ");
-        double chargeAmount;
-        try {
-            chargeAmount = keyboardInput.nextDouble();
-        } catch (Exception e) {
-            System.out.println("Invalid amount. Please enter a number.");
-            keyboardInput.nextLine();
-            return;
-        }
+        double chargeAmount = keyboardInput.getSafeInput("Charge amount: ","Invalid amount. Please enter a number.",Double::parseDouble);
 
-        keyboardInput.nextLine();
-        System.out.print("Charge description: ");
-        String chargeDesc = keyboardInput.nextLine();
+        String chargeDesc = keyboardInput.getSafeInput("Charge description: ","",Function.identity());
         Transaction newTransaction = userToCharge.issueCharge(chargeAmount, chargeDesc); 
         if (newTransaction != null) {
             dataHandler.addUserTransaction(userToCharge.getUsername(), newTransaction); //add transaction history to DB
@@ -100,15 +90,7 @@ public class Menu {
     }
 
     public void deposit() {
-        System.out.println("How much would you like to deposit?");
-        double amount;
-        try {
-            amount = keyboardInput.nextDouble();
-        } catch (Exception e) {
-            System.out.println("Invalid amount. Please enter a number.");
-            keyboardInput.nextLine();
-            return;
-        }
+        double amount = keyboardInput.getSafeInput("How much would you like to deposit?","Invalid amount. Please enter a number.",Double::parseDouble);
         Transaction newTransaction = activeUser.deposit(amount);
         if(newTransaction!=null) {
         	dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
@@ -119,15 +101,7 @@ public class Menu {
     }
 
     public void withdraw() {
-        System.out.println("How much would you like to withdraw?");
-        double amount;
-        try {
-            amount = keyboardInput.nextDouble();
-        } catch (Exception e) {
-            System.out.println("Invalid amount. Please enter a number.");
-            keyboardInput.nextLine();
-            return;
-        }
+        double amount = keyboardInput.getSafeInput("How much would you like to withdraw?","Invalid amount. Please enter a number.",Double::parseDouble);
         Transaction newTransaction = activeUser.withdraw(amount);
         if (newTransaction!=null) {
             dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
@@ -140,11 +114,17 @@ public class Menu {
             System.out.println(i + ". " + item.getOptionName());
             i++;
         }
-        int userChoice = keyboardInput.nextInt();
+        // passes a lambda which imposes the additional valid input range restriction. 
+        int userChoice = keyboardInput.getSafeInput("Enter a number [1-"+items.size()+"]: ","Invalid selection. Please enter a number between 1 and "+items.size(), input -> {
+            int value = Integer.parseInt(input);
+            if (value < 1 || value > items.size()) {
+                throw new IllegalArgumentException("Out of range");
+            }
+            return value;
+        });
         i = 1;
         for (Option item : items) {
             if (i == userChoice) {
-                keyboardInput.nextLine(); // clears the newline from the item selection
                 item.execute();
             }
             i++;
@@ -152,11 +132,9 @@ public class Menu {
     }
 
     private void login() {
-        System.out.println("Enter username: ");
-        String username = keyboardInput.nextLine();
+        String username = keyboardInput.getSafeInput("Enter username: ","",Function.identity());
     
-        System.out.println("Enter password: ");
-        String password = keyboardInput.nextLine();
+        String password = keyboardInput.getSafeInput("Enter password: ","",Function.identity());
     
         if (dataHandler.doesUserExist(username)) {
             if(authenticateUserPass(username, password)) {
@@ -179,15 +157,11 @@ public class Menu {
     }
     
     public void signUp() {
-        System.out.println("Enter new username: ");
-        String username = keyboardInput.nextLine();
-
+        String username = keyboardInput.getSafeInput("Enter new username: ","",Function.identity());
     
-        System.out.println("Enter password: ");
-        String password = keyboardInput.nextLine();
+        String password = keyboardInput.getSafeInput("Enter password: ","",Function.identity());
 
-        System.out.println("Confirm password: ");
-        String passwordConfirmation = keyboardInput.nextLine();
+        String passwordConfirmation = keyboardInput.getSafeInput("Confirm password: ","",Function.identity());
 
         if(!password.equals(passwordConfirmation)) {
             System.out.println("Passwords do not match, exiting...");

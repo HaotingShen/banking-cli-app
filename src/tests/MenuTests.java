@@ -15,6 +15,7 @@ import banking.Database;
 import banking.Menu;
 import banking.Transaction;
 import banking.User;
+import banking.SafeInput;
 
 public class MenuTests {
     
@@ -23,9 +24,9 @@ public class MenuTests {
 
 	@BeforeEach
     void setup() throws Exception {
-        Scanner keyboardInput = new Scanner(System.in);
+        SafeInput keyboardInput = new SafeInput(new Scanner(System.in));
         Database dataHandler = new Database();
-        this.menu = new Menu(keyboardInput,dataHandler);
+        this.menu = new Menu(dataHandler,keyboardInput);
         
         md = MessageDigest.getInstance("SHA-256");
     }
