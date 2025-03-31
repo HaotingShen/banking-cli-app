@@ -3,18 +3,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.security.MessageDigest;
 import banking.Transaction;
 
 
-public class Database {
+public class Database implements Serializable{
     private Map<String, User> mapToUser;
     private Map<String, List<Transaction>> mapToTransactions;
+    private FileSystem fileSystem;
     
     public Database(){
         mapToUser = new HashMap<>();
         mapToTransactions = new HashMap<>();
-
+        fileSystem = new FileSystem();
+        mapToUser = fileSystem.loadUsersFromFile();
     }
     
     //check if this user already exists in our database
@@ -28,9 +36,10 @@ public class Database {
         return null;
     }
 
-    //create user in the database
+    //create user in the database and store in file
     public User createUser(User newUser){
         mapToUser.put(newUser.getUsername(), newUser);
+        fileSystem.saveUsersToFile(mapToUser);
         return newUser;
 
 
@@ -40,9 +49,17 @@ public class Database {
     public void deleteUser(String username) throws Exception {
         if (mapToUser.containsKey(username)) {
             mapToUser.remove(username);
+            fileSystem.saveUsersToFile(mapToUser);
         } else {
             throw new RuntimeException("Username: '" + username + "' not found in the database.");
         }
+    }
+    
+
+    public void setUserTransaction(String username, List<Transaction> transactions) {
+    	//initialize the transactions if not yet
+    	if(mapToUser.containsKey(username)) mapToTransactions.put(username, transactions);
+    	
     }
     
     public List<Transaction> getUserTransaction(String username){
@@ -59,12 +76,6 @@ public class Database {
     	mapToTransactions.putIfAbsent(username, new ArrayList<>());
     	List<Transaction> transactionHistory = mapToTransactions.get(username);
     	transactionHistory.add(transaction);
-    }
-    
-    public void setUserTransaction(String username, List<Transaction> transactions) {
-    	//initialize the transactions if not yet
-    	if(mapToUser.containsKey(username)) mapToTransactions.put(username, transactions);
-    	
     }
 
     
