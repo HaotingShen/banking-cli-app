@@ -2,17 +2,20 @@ package banking;
 import banking.Menu;
 import banking.User;
 import banking.Database;
+import banking.SafeInput;
 import java.util.Scanner;
 
 public class BankingApp {
     private Scanner keyboardInput;
     private Menu menu;
     private Database dataHandler;
+    private SafeInput safeInput;
 
     public BankingApp() {
         this.keyboardInput = new Scanner(System.in);
         this.dataHandler = new Database();
-        this.menu = new Menu(keyboardInput,dataHandler);
+        this.safeInput = new SafeInput(keyboardInput);
+        this.menu = new Menu(dataHandler, safeInput);
     }
 
     public static void main(String[] args) {
