@@ -4,9 +4,10 @@ package banking;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
+import java.io.Serializable;
 import java.util.*;
 
-public class User {
+public class User implements Serializable {
 
     private String username;
     private String hashedPassword;
