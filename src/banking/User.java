@@ -11,6 +11,7 @@ public class User {
     private String username;
     private String hashedPassword;
     private double balance;
+    private String recoverySecret;
     
     public User(String username, String hashedPassword, double balance) {
         this.username = username;
@@ -27,6 +28,21 @@ public class User {
     
     public double getBalance() {
         return balance;
+    }
+
+    public String getSecret() {
+        if (recoverySecret != null) {
+            return recoverySecret;
+        }
+        return null;
+    }
+
+    public void resetPassword(String newHashedPassword) {
+        this.hashedPassword = newHashedPassword;
+    }
+
+    public void setSecret(String secret) {
+        this.recoverySecret = secret;
     }
     //to check if two users are the same
     @Override

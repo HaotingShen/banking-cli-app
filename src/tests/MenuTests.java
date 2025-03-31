@@ -16,6 +16,7 @@ import banking.Menu;
 import banking.Transaction;
 import banking.User;
 import banking.SafeInput;
+import banking.Authenticator;
 
 public class MenuTests {
     
@@ -106,7 +107,7 @@ public class MenuTests {
     
     @Test
     void testGetBalance() {
-        User testUser = new User("Test", Menu.hashPassword("password"), 100.0);
+        User testUser = new User("Test", Authenticator.hashPassword("password"), 100.0);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -115,7 +116,7 @@ public class MenuTests {
 
     @Test
     void testDeposit() {
-        User testUser = new User("Test", Menu.hashPassword("password"), 0);
+        User testUser = new User("Test", Authenticator.hashPassword("password"), 0);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -126,7 +127,7 @@ public class MenuTests {
 
     @Test
     void testWithdraw() {
-        User testUser = new User("Test", Menu.hashPassword("password"), 500);
+        User testUser = new User("Test", Authenticator.hashPassword("password"), 500);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -137,7 +138,7 @@ public class MenuTests {
 
     @Test
     void testWithdrawFailsForInsufficientBalance() {
-        User testUser = new User("Test", Menu.hashPassword("password"), 50);
+        User testUser = new User("Test", Authenticator.hashPassword("password"), 50);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -148,7 +149,7 @@ public class MenuTests {
 
     @Test
     void testIssueCharge() {
-        User testUser = new User("Test", Menu.hashPassword("password"), 500);
+        User testUser = new User("Test", Authenticator.hashPassword("password"), 500);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -159,7 +160,7 @@ public class MenuTests {
 
     @Test
     void testIssueChargeValidAmount() {
-        User userA = new User("UserA", Menu.hashPassword("password"), 500);
+        User userA = new User("UserA", Authenticator.hashPassword("password"), 500);
         this.menu.getDataHandler().createUser(userA);
 
         Transaction chargeTransaction = userA.issueCharge(100.0, "Test charge");
@@ -171,7 +172,7 @@ public class MenuTests {
 
     @Test
     void testIssueChargeInsufficientBalance() {
-        User userB = new User("UserB", Menu.hashPassword("password"), 50);
+        User userB = new User("UserB", Authenticator.hashPassword("password"), 50);
         this.menu.getDataHandler().createUser(userB);
 
         Transaction failedCharge = userB.issueCharge(100.0, "Overdrawn");
@@ -182,7 +183,7 @@ public class MenuTests {
 
     @Test
     void testIssueChargeInvalidAmount() {
-        User userC = new User("UserC", Menu.hashPassword("password"), 200);
+        User userC = new User("UserC", Authenticator.hashPassword("password"), 200);
         this.menu.getDataHandler().createUser(userC);
 
         Transaction zeroCharge = userC.issueCharge(0.0, "Zero");
@@ -195,7 +196,7 @@ public class MenuTests {
 
     @Test
     void testPrintStatementIncludesCorrectTransactions() {
-        User userD = new User("UserD", Menu.hashPassword("password"), 0);
+        User userD = new User("UserD", Authenticator.hashPassword("password"), 0);
         this.menu.getDataHandler().createUser(userD);
         this.menu.authenticateUserPass("UserD", "password");
 
