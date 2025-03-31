@@ -11,12 +11,19 @@ public class User {
     private String username;
     private String hashedPassword;
     private double balance;
+    private String accountNumber;
     
     public User(String username, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;
+        this.accountNumber = UUID.randomUUID().toString();
     }
+    
+    public String getAccountNumber() {
+		return accountNumber;
+    }
+    
     public Object getHashedPassword() {
         return hashedPassword;
     }
