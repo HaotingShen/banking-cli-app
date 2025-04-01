@@ -65,14 +65,19 @@ public class Database implements Serializable{
 
     public void setUserTransaction(String username, List<Transaction> transactions) {
     	//initialize the transactions if not yet
-    	if(mapToUser.containsKey(username)) mapToTransactions.put(username, transactions);
-    	fileSystem.saveTransactionsToFile(mapToTransactions);
+    	if(mapToUser.containsKey(username)) {
+    		mapToTransactions.put(username, transactions);
+    		fileSystem.saveUsersToFile(mapToUser);
+    		fileSystem.saveTransactionsToFile(mapToTransactions);
+    	}
     }
     
     public List<Transaction> getUserTransaction(String username){
     	//if user exists but no transaction has been created so far, create it here
     	if(mapToUser.containsKey(username)) {
     		mapToTransactions.putIfAbsent(username, new ArrayList<>());
+    		fileSystem.saveTransactionsToFile(mapToTransactions);
+
     		return mapToTransactions.get(username);
     	}
         return null;//only when the user does not exists, we return null
@@ -84,6 +89,7 @@ public class Database implements Serializable{
     	List<Transaction> transactionHistory = mapToTransactions.get(username);
     	transactionHistory.add(transaction);
     	fileSystem.saveTransactionsToFile(mapToTransactions);
+    	fileSystem.saveUsersToFile(mapToUser);
     }
 
     
