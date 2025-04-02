@@ -68,12 +68,14 @@ public class Menu {
     public void issueCharge() {
         // Since scanner returns Strings by default, just return any passed input.
         String accountNumber = keyboardInput.getSafeInput("Who would you like to charge (their account number): ","",Function.identity());
+
         User userToCharge = dataHandler.getUserByAccountNumber(accountNumber);
 
         if (userToCharge == null) {
             System.out.println("No user found with the provided account number.");
             return;
         }
+
         double chargeAmount = keyboardInput.getSafeInput("Charge amount: ","Invalid amount. Please enter a number.",Double::parseDouble);
 
 
