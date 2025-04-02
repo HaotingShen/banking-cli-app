@@ -202,6 +202,8 @@ public class MenuTests {
         User userC = new User("UserC", Authenticator.hashPassword("password"), 200);
 
         this.menu.getDataHandler().createUser(userC);
+        Transaction zeroCharge = userC.issueCharge(0.0, "Zero");
+        Transaction negativeCharge = userC.issueCharge(-50.0,"Negative");
         assertNull(zeroCharge);
         assertNull(negativeCharge);
         assertEquals(200.0, userC.getBalance(), 0.01);
