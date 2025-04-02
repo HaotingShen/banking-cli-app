@@ -49,6 +49,7 @@ public class MenuTests {
         this.menu.getDataHandler().createUser(testUser);
         try {
             assertTrue(this.menu.authenticateUserPass("Test","password"));
+            this.menu.getDataHandler().deleteUser("Test");
         }
         catch (Exception e) {
             this.menu.getDataHandler().deleteUser("Test");
@@ -70,7 +71,7 @@ public class MenuTests {
     
     @Test
     void testDepositAndWithdraw() throws Exception {
-        User testUser = new User("Test", "password", 100.00);
+        User testUser = new User("Test", Menu.hashPassword("password"), 100.00);
         this.menu.getDataHandler().createUser(testUser);
         
 
@@ -91,30 +92,33 @@ public class MenuTests {
     }
 
     @Test
-    void testUserCreationFailsForExistingUser() {
+    void testUserCreationFailsForExistingUser() throws Exception {
         this.menu.createUser("Test", "password", 0);
         boolean success = this.menu.createUser("Test", "password", 0);
         assertTrue(!success);
+        this.menu.getDataHandler().deleteUser("Test");
     }
     
     @Test
-    void testLogOut() {
+    void testLogOut() throws Exception {
         this.menu.createUser("Test", "password", 0);
         this.menu.logOut();
         assertNull(menu.getActiveUser()); // Active user should be null after logout
+        this.menu.getDataHandler().deleteUser("Test");
     }
     
     @Test
-    void testGetBalance() {
+    void testGetBalance() throws Exception {
         User testUser = new User("Test", Menu.hashPassword("password"), 100.0);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
         assertEquals(100.0, testUser.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("Test");
     }
 
     @Test
-    void testDeposit() {
+    void testDeposit() throws Exception {
         User testUser = new User("Test", Menu.hashPassword("password"), 0);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
@@ -122,10 +126,11 @@ public class MenuTests {
         Transaction depositTransaction = testUser.deposit(200.0);
         assertNotNull(depositTransaction);
         assertEquals(200.0, testUser.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("Test");
     }
 
     @Test
-    void testWithdraw() {
+    void testWithdraw() throws Exception {
         User testUser = new User("Test", Menu.hashPassword("password"), 500);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
@@ -133,10 +138,11 @@ public class MenuTests {
         Transaction withdrawTransaction = testUser.withdraw(100.0);
         assertNotNull(withdrawTransaction);
         assertEquals(400.0, testUser.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("Test");
     }
 
     @Test
-    void testWithdrawFailsForInsufficientBalance() {
+    void testWithdrawFailsForInsufficientBalance() throws Exception {
         User testUser = new User("Test", Menu.hashPassword("password"), 50);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
@@ -144,10 +150,11 @@ public class MenuTests {
         Transaction withdrawTransaction = testUser.withdraw(100.0);
         assertNull(withdrawTransaction);
         assertEquals(50.0, testUser.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("Test");
     }
 
     @Test
-    void testIssueCharge() {
+    void testIssueCharge() throws Exception {
         User testUser = new User("Test", Menu.hashPassword("password"), 500);
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
@@ -155,10 +162,11 @@ public class MenuTests {
         testUser.issueCharge(50.0, "Service Fee");
 
         assertEquals(450.0, testUser.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("Test");
     }
 
     @Test
-    void testIssueChargeValidAmount() {
+    void testIssueChargeValidAmount() throws Exception {
         User userA = new User("UserA", Menu.hashPassword("password"), 500);
         this.menu.getDataHandler().createUser(userA);
 
@@ -167,10 +175,11 @@ public class MenuTests {
         assertNotNull(chargeTransaction);
         assertEquals(-100.0, chargeTransaction.getAmount(), 0.01);
         assertEquals(400.0, userA.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("UserA");
     }
 
     @Test
-    void testIssueChargeInsufficientBalance() {
+    void testIssueChargeInsufficientBalance() throws Exception {
         User userB = new User("UserB", Menu.hashPassword("password"), 50);
         this.menu.getDataHandler().createUser(userB);
 
@@ -178,10 +187,11 @@ public class MenuTests {
 
         assertNull(failedCharge);
         assertEquals(50.0, userB.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("UserB");
     }
 
     @Test
-    void testIssueChargeInvalidAmount() {
+    void testIssueChargeInvalidAmount() throws Exception {
         User userC = new User("UserC", Menu.hashPassword("password"), 200);
         this.menu.getDataHandler().createUser(userC);
 
@@ -191,10 +201,11 @@ public class MenuTests {
         assertNull(zeroCharge);
         assertNull(negativeCharge);
         assertEquals(200.0, userC.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("UserC");
     }
 
     @Test
-    void testPrintStatementIncludesCorrectTransactions() {
+    void testPrintStatementIncludesCorrectTransactions() throws Exception {
         User userD = new User("UserD", Menu.hashPassword("password"), 0);
         this.menu.getDataHandler().createUser(userD);
         this.menu.authenticateUserPass("UserD", "password");
@@ -209,6 +220,7 @@ public class MenuTests {
         assertEquals(2, this.menu.getDataHandler().getUserTransaction(userD.getUsername()).size());
         assertEquals("Deposit", this.menu.getDataHandler().getUserTransaction(userD.getUsername()).get(0).getDescription());
         assertTrue(this.menu.getDataHandler().getUserTransaction(userD.getUsername()).get(1).getDescription().contains("Test Service"));
+        this.menu.getDataHandler().deleteUser("UserD");
     }
 
 
