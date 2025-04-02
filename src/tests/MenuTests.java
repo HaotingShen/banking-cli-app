@@ -73,6 +73,7 @@ public class MenuTests {
     @Test
     void testDepositAndWithdraw() throws Exception {
         User testUser = new User("Test", Authenticator.hashPassword("password"), 100.00);
+
         this.menu.getDataHandler().createUser(testUser);
         
 
@@ -111,6 +112,7 @@ public class MenuTests {
     @Test
     void testGetBalance() throws Exception {
         User testUser = new User("Test", Authenticator.hashPassword("password"), 100.0);
+
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -121,6 +123,7 @@ public class MenuTests {
     @Test
     void testDeposit() throws Exception {
         User testUser = new User("Test", Authenticator.hashPassword("password"), 0);
+
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -133,6 +136,7 @@ public class MenuTests {
     @Test
     void testWithdraw() throws Exception {
         User testUser = new User("Test", Authenticator.hashPassword("password"), 500);
+
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -145,6 +149,7 @@ public class MenuTests {
     @Test
     void testWithdrawFailsForInsufficientBalance() throws Exception {
         User testUser = new User("Test", Authenticator.hashPassword("password"), 50);
+
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -157,6 +162,7 @@ public class MenuTests {
     @Test
     void testIssueCharge() throws Exception {
         User testUser = new User("Test", Authenticator.hashPassword("password"), 500);
+
         this.menu.getDataHandler().createUser(testUser);
         this.menu.authenticateUserPass("Test", "password");
 
@@ -194,6 +200,7 @@ public class MenuTests {
     @Test
     void testIssueChargeInvalidAmount() throws Exception {
         User userC = new User("UserC", Authenticator.hashPassword("password"), 200);
+
         this.menu.getDataHandler().createUser(userC);
         assertNull(zeroCharge);
         assertNull(negativeCharge);
@@ -204,6 +211,7 @@ public class MenuTests {
     @Test
     void testPrintStatementIncludesCorrectTransactions() throws Exception {
         User userD = new User("UserD", Authenticator.hashPassword("password"), 0);
+
         this.menu.getDataHandler().createUser(userD);
         this.menu.authenticateUserPass("UserD", "password");
 
