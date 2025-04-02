@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Scanner;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -154,76 +155,88 @@ public class MenuTests {
     }
 
     @Test
-    void testIssueCharge() throws Exception {
-        User testUser = new User("Test", Menu.hashPassword("password"), 500);
-        this.menu.getDataHandler().createUser(testUser);
-        this.menu.authenticateUserPass("Test", "password");
-
-        testUser.issueCharge(50.0, "Service Fee");
-
-        assertEquals(450.0, testUser.getBalance(), 0.01);
-        this.menu.getDataHandler().deleteUser("Test");
-    }
-
-    @Test
     void testIssueChargeValidAmount() throws Exception {
-        User userA = new User("UserA", Menu.hashPassword("password"), 500);
-        this.menu.getDataHandler().createUser(userA);
+        User issuer = new User("UserA", Menu.hashPassword("password"), 500);
+        User target = new User("UserB", Menu.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(issuer);
+        this.menu.getDataHandler().createUser(target);
 
-        Transaction chargeTransaction = userA.issueCharge(100.0, "Test charge");
-
+        Transaction chargeTransaction = issuer.issueCharge(target, 100.0, "Test charge");
         assertNotNull(chargeTransaction);
-        assertEquals(-100.0, chargeTransaction.getAmount(), 0.01);
-        assertEquals(400.0, userA.getBalance(), 0.01);
+        assertEquals(600.0, issuer.getBalance(), 0.01);
+        assertEquals(400.0, target.getBalance(), 0.01);
         this.menu.getDataHandler().deleteUser("UserA");
+        this.menu.getDataHandler().deleteUser("UserB");
     }
 
     @Test
     void testIssueChargeInsufficientBalance() throws Exception {
-        User userB = new User("UserB", Menu.hashPassword("password"), 50);
-        this.menu.getDataHandler().createUser(userB);
+        User issuer = new User("UserA", Menu.hashPassword("password"), 500);
+        User target = new User("UserB", Menu.hashPassword("password"), 50);
+        this.menu.getDataHandler().createUser(issuer);
+        this.menu.getDataHandler().createUser(target);
 
-        Transaction failedCharge = userB.issueCharge(100.0, "Overdrawn");
-
+        Transaction failedCharge = issuer.issueCharge(target, 100.0, "Test charge");
         assertNull(failedCharge);
-        assertEquals(50.0, userB.getBalance(), 0.01);
+        assertEquals(500.0, issuer.getBalance(), 0.01);
+        assertEquals(50.0, target.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("UserA");
         this.menu.getDataHandler().deleteUser("UserB");
     }
 
     @Test
     void testIssueChargeInvalidAmount() throws Exception {
-        User userC = new User("UserC", Menu.hashPassword("password"), 200);
-        this.menu.getDataHandler().createUser(userC);
+        User issuer = new User("UserA", Menu.hashPassword("password"), 500);
+        User target = new User("UserB", Menu.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(issuer);
+        this.menu.getDataHandler().createUser(target);
 
-        Transaction zeroCharge = userC.issueCharge(0.0, "Zero");
-        Transaction negativeCharge = userC.issueCharge(-50.0, "Negative");
-
+        Transaction zeroCharge = issuer.issueCharge(target, 0.0, "Zero charge");
+        Transaction negativeCharge = issuer.issueCharge(target, -50.0, "Negative charge");
         assertNull(zeroCharge);
         assertNull(negativeCharge);
-        assertEquals(200.0, userC.getBalance(), 0.01);
-        this.menu.getDataHandler().deleteUser("UserC");
+        assertEquals(500.0, issuer.getBalance(), 0.01);
+        assertEquals(500.0, target.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("UserA");
+        this.menu.getDataHandler().deleteUser("UserB");
     }
 
     @Test
-    void testPrintStatementIncludesCorrectTransactions() throws Exception {
-        User userD = new User("UserD", Menu.hashPassword("password"), 0);
-        this.menu.getDataHandler().createUser(userD);
-        this.menu.authenticateUserPass("UserD", "password");
+    void testIssuerStatementIncludesChargeTransaction() throws Exception {
+        User issuer = new User("Issuer", Menu.hashPassword("password"), 500);
+        User target = new User("Target", Menu.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(issuer);
+        this.menu.getDataHandler().createUser(target);
 
-        Transaction t1 = userD.deposit(100.0);
-        Transaction t2 = userD.issueCharge(50.0, "Test Service");
+        Transaction deposit = issuer.deposit(100.0);
+        Transaction charge = issuer.issueCharge(target, 50.0, "Test Service");
+        this.menu.getDataHandler().addUserTransaction(issuer.getUsername(), deposit);
+        this.menu.getDataHandler().addUserTransaction(issuer.getUsername(), charge);
 
-        this.menu.getDataHandler().addUserTransaction(userD.getUsername(), t1);
-        this.menu.getDataHandler().addUserTransaction(userD.getUsername(), t2);
-
-        assertEquals(50.0, userD.getBalance(), 0.01);
-        assertEquals(2, this.menu.getDataHandler().getUserTransaction(userD.getUsername()).size());
-        assertEquals("Deposit", this.menu.getDataHandler().getUserTransaction(userD.getUsername()).get(0).getDescription());
-        assertTrue(this.menu.getDataHandler().getUserTransaction(userD.getUsername()).get(1).getDescription().contains("Test Service"));
-        this.menu.getDataHandler().deleteUser("UserD");
+        List<Transaction> issuerTransactions = this.menu.getDataHandler().getUserTransaction(issuer.getUsername());
+        assertEquals(2, issuerTransactions.size());
+        assertEquals("Deposit", issuerTransactions.get(0).getDescription());
+        assertTrue(issuerTransactions.get(1).getDescription().contains("Test Service"));
+        this.menu.getDataHandler().deleteUser("Issuer");
+        this.menu.getDataHandler().deleteUser("Target");
     }
 
+    @Test
+    void testTargetStatementIncludesChargeReceived() throws Exception {
+        User issuer = new User("Issuer", Menu.hashPassword("password"), 500);
+        User target = new User("Target", Menu.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(issuer);
+        this.menu.getDataHandler().createUser(target);
+
+        issuer.issueCharge(target, 50.0, "Test Service");
+        Transaction chargeRecord = target.issueChargeRecord(50.0, issuer.getUsername(), "Test Service");
+        this.menu.getDataHandler().addUserTransaction(target.getUsername(), chargeRecord);
+
+        List<Transaction> targetTransactions = this.menu.getDataHandler().getUserTransaction(target.getUsername());
+        assertEquals(1, targetTransactions.size());
+        assertTrue(targetTransactions.get(0).getDescription().contains("Issuer"));
+        this.menu.getDataHandler().deleteUser("Issuer");
+        this.menu.getDataHandler().deleteUser("Target");
+    }
 
 }
-
-    

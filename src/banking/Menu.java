@@ -1,7 +1,6 @@
 package banking;
-import banking.SafeInput;
-import java.security.MessageDigest; //future class, handle reading from our files for persistence
-import java.security.NoSuchAlgorithmException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException; //future class, handle reading from our files for persistence
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
@@ -80,10 +79,13 @@ public class Menu {
 
 
         String chargeDesc = keyboardInput.getSafeInput("Charge description: ","",Function.identity());
-        Transaction newTransaction = userToCharge.issueCharge(chargeAmount, chargeDesc); 
-        if (newTransaction != null) {
-            dataHandler.addUserTransaction(userToCharge.getUsername(), newTransaction); //add transaction history to DB
-            System.out.println("Charge issued.");
+        Transaction issuerTransaction = activeUser.issueCharge(userToCharge, chargeAmount, chargeDesc);
+        if (issuerTransaction != null) {
+            dataHandler.addUserTransaction(activeUser.getUsername(), issuerTransaction);
+            dataHandler.addUserTransaction(userToCharge.getUsername(), userToCharge.issueChargeRecord(chargeAmount, activeUser.getUsername(), chargeDesc));
+        }
+        else {
+            System.out.println("Charge failed.");
         }
     }
 
