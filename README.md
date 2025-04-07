@@ -29,6 +29,9 @@ Team Members:
 # What user stories do you intend to complete next iteration?
 1. A user should be allowed to change username
 2. A transaction can be recalled
+3. A User should be able to get loans
+4. A credit card should allow users to user spend more than they have, but no more than the limit
+5. A user should choose to pay with credit card or balance
 
 
 # Is there anything that you implemented but doesn't currently work?
