@@ -85,14 +85,22 @@ public class Database implements Serializable{
     
     public void updateUsername(String oldUsername, String newUsername, User updatedUser) {
         // Move user object
-        mapToUser.remove(oldUsername);
-        mapToUser.put(newUsername, updatedUser);
-
-        // Also move transaction history
-        if (mapToTransactions.containsKey(oldUsername)) {
-            List<Transaction> txs = mapToTransactions.remove(oldUsername);
-            mapToTransactions.put(newUsername, txs);
-        }
+    	if(mapToUser.containsKey(oldUsername)) {
+	        mapToUser.remove(oldUsername);
+	        mapToUser.put(newUsername, updatedUser);
+	        fileSystem.saveUsersToFile(mapToUser);
+	        // Also move transaction history
+	        if (mapToTransactions.containsKey(oldUsername)) {
+	            List<Transaction> txs = mapToTransactions.remove(oldUsername);
+	            mapToTransactions.put(newUsername, txs);
+	            fileSystem.saveTransactionsToFile(mapToTransactions);
+	        }
+	     }
+    }
+    
+    
+    public void updateUserInfo() {
+    	fileSystem.saveUsersToFile(mapToUser);
     }
     
     public List<Transaction> getUserTransaction(String username){
