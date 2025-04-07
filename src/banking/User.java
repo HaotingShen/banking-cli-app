@@ -48,6 +48,12 @@ public class User implements Serializable {
     public void resetPassword(String newHashedPassword) {
         this.hashedPassword = newHashedPassword;
     }
+    
+    public void changeUsername(String newUsername) {
+        if (newUsername != null && !newUsername.trim().isEmpty()) {
+            this.username = newUsername;
+        }
+    }
 
     public void setSecret(String secret) {
         this.recoverySecret = secret;
