@@ -25,13 +25,18 @@ Team Members:
 4. A user should be able to reset (or recover) password
 5. A user should be able to transfer money to another user
 6. A banking app should validate user inputs
+7. A user should be allowed to change username
+8. A charge issues should increase issuer's balance by that amount
 
 # What user stories do you intend to complete next iteration?
-1. A user should be allowed to change username
+1. A user account can be freezed
 2. A transaction can be recalled
 3. A User should be able to get loans
 4. A credit card should allow users to user spend more than they have, but no more than the limit
 5. A user should choose to pay with credit card or balance
+6. An admin should approve/reject loans
+7. An admin should be able to recall transactions
+8. An admin should be able to freeze a user account
 
 
 # Is there anything that you implemented but doesn't currently work?
