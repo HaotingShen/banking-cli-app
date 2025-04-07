@@ -106,6 +106,31 @@ public class User implements Serializable {
     	return null;
     }
 
+    //transfer money to another user
+    public Transaction transferTo(User recipient, double amount, String description) {
+        if (this.accountNumber.equals(recipient.accountNumber)) {
+            System.out.println("You cannot transfer money to yourself.");
+            return null;
+        }
+        if (amount <= 0) {
+            System.out.println("Transfer amount must be positive.");
+            return null;
+        }
+        if (this.balance < amount) {
+            System.out.println("Insufficient funds for transfer.");
+            return null;
+        }
+        this.balance -= amount;
+        recipient.balance += amount;
+        System.out.println("Transfer successful. $" + String.format("%.2f", amount) + " sent to " + recipient.getUsername());
+        return new Transaction(-amount, "Transfer to " + recipient.getUsername() + " - " + description);
+    }
+    
+    //create transfer record for the recipient
+    public Transaction receiveTransfer(double amount, String senderName, String description) {
+        return new Transaction(amount, "Transfer from " + senderName + " - " + description);
+    }
+
     //Request statement
     public void printStatement(List<Transaction> transactions) {
         System.out.println("\n--- Account Statement ---");
