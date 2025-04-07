@@ -12,6 +12,7 @@ public class User implements Serializable {
     private String username;
     private String hashedPassword;
     private double balance;
+    private String recoverySecret;
     private String accountNumber;
     
     public User(String username, String hashedPassword, double balance) {
@@ -35,6 +36,21 @@ public class User implements Serializable {
     
     public double getBalance() {
         return balance;
+    }
+
+    public String getSecret() {
+        if (recoverySecret != null) {
+            return recoverySecret;
+        }
+        return null;
+    }
+
+    public void resetPassword(String newHashedPassword) {
+        this.hashedPassword = newHashedPassword;
+    }
+
+    public void setSecret(String secret) {
+        this.recoverySecret = secret;
     }
     //to check if two users are the same
     @Override

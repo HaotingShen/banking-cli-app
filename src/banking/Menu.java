@@ -1,10 +1,11 @@
 package banking;
 import banking.SafeInput;
 import java.security.MessageDigest; //future class, handle reading from our files for persistence
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import banking.Authenticator;
+import banking.QRCodeGenerator;
 
 public class Menu {
     
@@ -22,6 +23,7 @@ public class Menu {
         this.publicOptions = new ArrayList<>();
         publicOptions.add(new Option("Login to account", this::login));
         publicOptions.add(new Option("Create account", this::signUp));
+        publicOptions.add(new Option("Reset Password", this::recoverAccount));
         publicOptions.add(new Option("Exit",this::shutDown));
         this.privateOptions = new ArrayList<>();
         privateOptions.add(new Option("Check Balance",this::getBalance));
@@ -30,6 +32,8 @@ public class Menu {
         privateOptions.add(new Option("Withdraw",this::withdraw));
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
+        privateOptions.add(new Option("Change Password", this::changePassword));
+        privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
     }
@@ -156,7 +160,7 @@ public class Menu {
 
     public boolean authenticateUserPass(String username,String password) {
         User requestedAccount = dataHandler.getUserData(username);
-        if (requestedAccount.getHashedPassword().equals(Menu.hashPassword(password))) {
+        if (requestedAccount.getHashedPassword().equals(Authenticator.hashPassword(password))) {
             this.activeUser = requestedAccount;
             return true;
         }
@@ -181,10 +185,57 @@ public class Menu {
         }
     }
 
+    public void enable2FA() {
+        String userSecret = Authenticator.generateSecureSecret();
+        this.activeUser.setSecret(userSecret);
+        System.out.println("Add the following code to your 2FA application (authy, google authenticatr, etc): "+userSecret);
+        QRCodeGenerator.printQRCodeFromSecret(this.activeUser.getUsername(),this.activeUser.getSecret());
+    }
+
+    public void recoverAccount() {
+        String username = keyboardInput.getSafeInput("Please enter the username of the account you want to reset: ","",Function.identity());
+        if (!dataHandler.doesUserExist(username)) {
+            System.out.println("Username does not exist.");
+            return;
+        }
+        User requestedUser = dataHandler.getUserData(username);
+        if (requestedUser.getSecret() == null) {
+            System.out.println("You have not enabled 2FA.");
+            return;
+        }
+        int currentCode = keyboardInput.getSafeInput("Please enter your 6 digit 2FA code","Please enter a valid 6 digit code",input->{
+            if (input.length() == 6) {
+                return Integer.parseInt(input);
+            } else {
+                throw new IllegalArgumentException("Invalid Length");
+            }
+        });
+        if (Authenticator.validateTOTP(requestedUser.getSecret(),currentCode)) {
+            resetPassword(requestedUser);
+        } else {
+            System.out.println("Invalid 2FA code.");
+        }
+    }
+
+    public void resetPassword(User target) {
+        String password = keyboardInput.getSafeInput("Enter new password: ","",Function.identity());
+        String passwordConfirmation = keyboardInput.getSafeInput("Confirm password: ","",Function.identity());
+        if(!password.equals(passwordConfirmation)) {
+            System.out.println("Passwords do not match, exiting...");
+        } else {
+            target.resetPassword(Authenticator.hashPassword(password));
+            System.out.println("Your password has been succesfully reset!");
+        }
+    }
+
+    public void changePassword() {
+        // just a wrapper since the option class takes in a function with no inputs or return type.
+        resetPassword(this.activeUser);
+    }
 
     public boolean createUser(String username, String password, double balance) {
         if (!dataHandler.doesUserExist(username)) {
-            User userToRegister = new User(username, Menu.hashPassword(password), balance);
+            User userToRegister = new User(username, Authenticator.hashPassword(password), balance);
             this.activeUser = dataHandler.createUser(userToRegister);
             return true;
         }
@@ -194,24 +245,6 @@ public class Menu {
     public void logOut() {
         this.activeUser = null;
         System.out.println("Logged out Succesfully");
-    }
-
-    public static String hashPassword(String password) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] hashBytes = md.digest(password.getBytes());
-
-            // Convert hash bytes to hex string
-            StringBuilder sb = new StringBuilder();
-            for (byte b : hashBytes) {
-                sb.append(String.format("%02x", b));
-            }
-
-            String hashedPassword = sb.toString();
-            return hashedPassword;
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 algorithm not found.");
-        }
     }
     
     public User getActiveUser() {
