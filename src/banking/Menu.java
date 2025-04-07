@@ -27,6 +27,7 @@ public class Menu {
         publicOptions.add(new Option("Exit",this::shutDown));
         this.privateOptions = new ArrayList<>();
         privateOptions.add(new Option("Check Balance",this::getBalance));
+        privateOptions.add(new Option("View Account Number",this::getAccountNumber));
         privateOptions.add(new Option("Deposit",this::deposit));
         privateOptions.add(new Option("Withdraw",this::withdraw));
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
@@ -63,18 +64,24 @@ public class Menu {
     public void getBalance() {
         System.out.printf("Your balance is currently: %.2f%n", activeUser.getBalance());//added precision for double
     }
+    
+    public void getAccountNumber() {
+        System.out.println("Your account number is: " + activeUser.getAccountNumber());
+    }
 
     public void issueCharge() {
         // Since scanner returns Strings by default, just return any passed input.
-        String nameOfUserToCharge = keyboardInput.getSafeInput("Who would you like to charge (their user_id): ","",Function.identity());
+        String accountNumber = keyboardInput.getSafeInput("Who would you like to charge (their account number): ","",Function.identity());
 
-        if(!dataHandler.doesUserExist(nameOfUserToCharge)) {
-        	System.out.println("No such user");
-        	return;
+        User userToCharge = dataHandler.getUserByAccountNumber(accountNumber);
+
+        if (userToCharge == null) {
+            System.out.println("No user found with the provided account number.");
+            return;
         }
 
-        User userToCharge = dataHandler.getUserData(nameOfUserToCharge);
         double chargeAmount = keyboardInput.getSafeInput("Charge amount: ","Invalid amount. Please enter a number.",Double::parseDouble);
+
 
         String chargeDesc = keyboardInput.getSafeInput("Charge description: ","",Function.identity());
         Transaction newTransaction = userToCharge.issueCharge(chargeAmount, chargeDesc); 

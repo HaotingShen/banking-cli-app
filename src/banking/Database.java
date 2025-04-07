@@ -29,6 +29,17 @@ public class Database implements Serializable{
     public boolean doesUserExist(String username){
         return mapToUser.containsKey(username);
     }
+    
+    // Get user data by account number
+    public User getUserByAccountNumber(String accountNumber) {
+        for (User user : mapToUser.values()) {
+            if (user.getAccountNumber().equals(accountNumber)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
 
     //get user data (User object) from the database
     public User getUserData(String username){
