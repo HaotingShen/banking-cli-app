@@ -69,31 +69,36 @@ public class User implements Serializable {
         return Objects.hash(username, hashedPassword, balance);
     }
     
-    //Issue a charge
-    public Transaction issueCharge(double amount, String description) {
-        if (amount > 0 && balance >= amount) {
-            balance -= amount;
-            Transaction newTransaction = new Transaction(-amount, "Charge: " + description);
-            return newTransaction;
-        } 
-        else if (amount <= 0) {
-            System.out.println("Charge amount invalid.");
-        } 
-        else if (balance < amount) {
-            System.out.println("Insufficient balance.");
-        } 
-        else {
-            System.out.println("An error occurred. Please try again later.");
+    //issue a charge
+    public Transaction issueCharge(User target, double amount, String description) {
+        if (this.accountNumber.equals(target.accountNumber)) {
+            System.out.println("You cannot charge yourself.");
+            return null;
         }
-        return null;
+        if (amount <= 0) {
+            System.out.println("Charge amount invalid.");
+            return null;
+        }
+        if (target.balance < amount) {
+            System.out.println("Target user has insufficient funds.");
+            return null;
+        }
+        target.balance -= amount;
+        this.balance += amount;
+        System.out.println("Charge issued successfully. You received $" + String.format("%.2f", amount));
+        return new Transaction(amount, "Charge received from " + target.username + " - " + description);
     }
+
+    //create charge record for the target user
+    public Transaction issueChargeRecord(double amount, String issuerUsername, String description) {
+        return new Transaction(-amount, "Charged by " + issuerUsername + " - " + description);
+    }    
     
     //deposit amount
     public Transaction deposit(double amount) {
     	if (amount > 0) {
             balance += amount;
             Transaction newTransaction = new Transaction(amount, "Deposit");
-            // transactionHistory.add(newTransaction);
             System.out.println("Deposit successful. New balance: " + String.format("%.2f", balance));
             return newTransaction;
         } else {
@@ -107,7 +112,6 @@ public class User implements Serializable {
     	if (amount > 0 && balance >= amount) {
             balance -= amount;
             Transaction newTransaction = new Transaction(-amount, "Withdraw");
-            // transactionHistory.add(newTransaction);
             System.out.println("Withdrawal successful. New balance: " + String.format("%.2f", balance));
             return newTransaction;
         } else if (amount <= 0) {
