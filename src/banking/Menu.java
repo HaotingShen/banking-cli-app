@@ -34,6 +34,7 @@ public class Menu {
         privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Change Password", this::changePassword));
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA,()->activeUser.getSecret() == null));
+        privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA,()->activeUser.getSecret() != null));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
     }
@@ -194,6 +195,11 @@ public class Menu {
         this.activeUser.setSecret(userSecret);
         System.out.println("Add the following code to your 2FA application (authy, google authenticatr, etc): "+userSecret);
         QRCodeGenerator.printQRCodeFromSecret(this.activeUser.getUsername(),this.activeUser.getSecret());
+    }
+
+    public void remove2FA() {
+        this.activeUser.setSecret(null);
+        System.out.println("Your 2FA has been removed. Tread carefully...");
     }
 
     public void recoverAccount() {
