@@ -161,6 +161,71 @@ public class MenuTests {
     }
 
     @Test
+    void testSuccessfulTransfer() throws Exception {
+        User sender = new User("Sender", Authenticator.hashPassword("password"), 500);
+        User receiver = new User("Receiver", Authenticator.hashPassword("password"), 300);
+        this.menu.getDataHandler().createUser(sender);
+        this.menu.getDataHandler().createUser(receiver);
+
+        Transaction transfer = sender.transferTo(receiver, 200.0, "Rent payment");
+        assertNotNull(transfer);
+        this.menu.getDataHandler().addUserTransaction(sender.getUsername(), transfer);
+
+        Transaction receive = receiver.receiveTransfer(200.0, sender.getUsername(), "Rent payment");
+        this.menu.getDataHandler().addUserTransaction(receiver.getUsername(), receive);
+
+        assertEquals(300.0, sender.getBalance(), 0.01);
+        assertEquals(500.0, receiver.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("Sender");
+        this.menu.getDataHandler().deleteUser("Receiver");
+    }
+
+    @Test
+    void testTransferFailsForInsufficientFunds() throws Exception {
+        User sender = new User("Sender", Authenticator.hashPassword("password"), 100);
+        User receiver = new User("Receiver", Authenticator.hashPassword("password"), 300);
+        this.menu.getDataHandler().createUser(sender);
+        this.menu.getDataHandler().createUser(receiver);
+
+        Transaction transfer = sender.transferTo(receiver, 200.0, "Large transfer");
+        assertNull(transfer);
+        assertEquals(100.0, sender.getBalance(), 0.01);
+        assertEquals(300.0, receiver.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("Sender");
+        this.menu.getDataHandler().deleteUser("Receiver");
+    }
+
+    @Test
+    void testTransferToSelfFails() throws Exception {
+        User sender = new User("SelfUser", Authenticator.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(sender);
+
+        Transaction transfer = sender.transferTo(sender, 100.0, "Trying to send to self");
+        assertNull(transfer);
+        assertEquals(500.0, sender.getBalance(), 0.01);
+
+        this.menu.getDataHandler().deleteUser("SelfUser");
+    }
+
+    @Test
+    void testTransferWithInvalidAmount() throws Exception {
+        User sender = new User("Sender", Authenticator.hashPassword("password"), 500);
+        User receiver = new User("Receiver", Authenticator.hashPassword("password"), 500);
+        this.menu.getDataHandler().createUser(sender);
+        this.menu.getDataHandler().createUser(receiver);
+
+        Transaction zeroTransfer = sender.transferTo(receiver, 0.0, "Zero transfer");
+        Transaction negativeTransfer = sender.transferTo(receiver, -50.0, "Negative transfer");
+        
+        assertNull(zeroTransfer);
+        assertNull(negativeTransfer);
+        assertEquals(500.0, sender.getBalance(), 0.01);
+        assertEquals(500.0, receiver.getBalance(), 0.01);
+        this.menu.getDataHandler().deleteUser("Sender");
+        this.menu.getDataHandler().deleteUser("Receiver");
+    }
+
+    @Test
     void testIssueChargeValidAmount() throws Exception {
         User issuer = new User("UserA", Authenticator.hashPassword("password"), 500);
         User target = new User("UserB", Authenticator.hashPassword("password"), 500);

@@ -30,6 +30,7 @@ public class Menu {
         privateOptions.add(new Option("View Account Number",this::getAccountNumber));
         privateOptions.add(new Option("Deposit",this::deposit));
         privateOptions.add(new Option("Withdraw",this::withdraw));
+        privateOptions.add(new Option("Transfer Money", this::transferMoney));
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Change Password", this::changePassword));
@@ -119,6 +120,26 @@ public class Menu {
         Transaction newTransaction = activeUser.withdraw(amount);
         if (newTransaction!=null) {
             dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
+        }
+    }
+
+    public void transferMoney() {
+        String accountNumber = keyboardInput.getSafeInput("Enter recipient's account number:", "", Function.identity());
+        User recipient = dataHandler.getUserByAccountNumber(accountNumber);
+    
+        if (recipient == null) {
+            System.out.println("No user found with that account number.");
+            return;
+        }
+    
+        double amount = keyboardInput.getSafeInput("Enter amount to transfer:", "Invalid amount. Please enter a number.", Double::parseDouble);
+        String description = keyboardInput.getSafeInput("Enter transfer description:", "", Function.identity());
+    
+        Transaction senderTransaction = activeUser.transferTo(recipient, amount, description);
+        if (senderTransaction != null) {
+            Transaction recipientTransaction = recipient.receiveTransfer(amount, activeUser.getUsername(), description);
+            dataHandler.addUserTransaction(activeUser.getUsername(), senderTransaction);
+            dataHandler.addUserTransaction(recipient.getUsername(), recipientTransaction);
         }
     }
 
