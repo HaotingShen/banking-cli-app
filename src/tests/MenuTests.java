@@ -162,8 +162,8 @@ public class MenuTests {
 
     @Test
     void testSuccessfulTransfer() throws Exception {
-        User sender = new User("Sender", Menu.hashPassword("password"), 500);
-        User receiver = new User("Receiver", Menu.hashPassword("password"), 300);
+        User sender = new User("Sender", Authenticator.hashPassword("password"), 500);
+        User receiver = new User("Receiver", Authenticator.hashPassword("password"), 300);
         this.menu.getDataHandler().createUser(sender);
         this.menu.getDataHandler().createUser(receiver);
 
@@ -182,8 +182,8 @@ public class MenuTests {
 
     @Test
     void testTransferFailsForInsufficientFunds() throws Exception {
-        User sender = new User("Sender", Menu.hashPassword("password"), 100);
-        User receiver = new User("Receiver", Menu.hashPassword("password"), 300);
+        User sender = new User("Sender", Authenticator.hashPassword("password"), 100);
+        User receiver = new User("Receiver", Authenticator.hashPassword("password"), 300);
         this.menu.getDataHandler().createUser(sender);
         this.menu.getDataHandler().createUser(receiver);
 
@@ -197,7 +197,7 @@ public class MenuTests {
 
     @Test
     void testTransferToSelfFails() throws Exception {
-        User sender = new User("SelfUser", Menu.hashPassword("password"), 500);
+        User sender = new User("SelfUser", Authenticator.hashPassword("password"), 500);
         this.menu.getDataHandler().createUser(sender);
 
         Transaction transfer = sender.transferTo(sender, 100.0, "Trying to send to self");
@@ -209,8 +209,8 @@ public class MenuTests {
 
     @Test
     void testTransferWithInvalidAmount() throws Exception {
-        User sender = new User("Sender", Menu.hashPassword("password"), 500);
-        User receiver = new User("Receiver", Menu.hashPassword("password"), 500);
+        User sender = new User("Sender", Authenticator.hashPassword("password"), 500);
+        User receiver = new User("Receiver", Authenticator.hashPassword("password"), 500);
         this.menu.getDataHandler().createUser(sender);
         this.menu.getDataHandler().createUser(receiver);
 
