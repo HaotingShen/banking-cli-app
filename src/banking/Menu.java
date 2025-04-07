@@ -33,6 +33,7 @@ public class Menu {
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Change Password", this::changePassword));
+        privateOptions.add(new Option("Change Username", this::changeUsername));
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
@@ -231,6 +232,23 @@ public class Menu {
     public void changePassword() {
         // just a wrapper since the option class takes in a function with no inputs or return type.
         resetPassword(this.activeUser);
+    }
+    
+    public void changeUsername() {
+        String newUsername = keyboardInput.getSafeInput("Enter new username: ", "", Function.identity());
+
+        // checking if the new username is already taken
+        if (dataHandler.doesUserExist(newUsername)) {
+            System.out.println("Username already taken. Please choose another one.");
+            return;
+        }
+
+        String oldUsername = activeUser.getUsername();
+
+        activeUser.changeUsername(newUsername);
+        dataHandler.updateUsername(oldUsername, newUsername, activeUser);
+
+        System.out.println("Username changed successfully to: " + newUsername);
     }
 
     public boolean createUser(String username, String password, double balance) {
