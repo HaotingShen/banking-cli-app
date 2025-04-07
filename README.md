@@ -50,3 +50,4 @@ To use the `recoverAccount` option, you will need some form of 2FA installed on 
 git clone https://github.com/CSE237SP25/project-creative-crows.git
 ./run.sh
 ```
+One thing to note is that when entering account number, do not have whitespace around it.
