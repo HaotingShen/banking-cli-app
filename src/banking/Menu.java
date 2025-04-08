@@ -256,6 +256,7 @@ public class Menu {
     public void changePassword() {
         // just a wrapper since the option class takes in a function with no inputs or return type.
         resetPassword(this.activeUser);
+        dataHandler.updateUserInfo();
     }
     
     public void changeUsername() {
