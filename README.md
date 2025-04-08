@@ -43,7 +43,7 @@ Team Members:
 
 NA.
 
-To use the `recoverAccount` option, you will need some form of 2FA installed on your phone or computer. Apps like [Google Authenticator](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2), [Authy](https://www.authy.com/) and [FreeOTP](https://freeotp.github.io/) are commonly used, but there are many, many more.
+To use the `recoverAccount` option, you will need some form of 2FA installed on your phone or computer. Apps like [Google Authenticator](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2), [Authy](https://www.authy.com/) and [FreeOTP](https://freeotp.github.io/) are commonly used, but there are many, many more. For example, you can simply use DuoMobile to scan the QR code.
 
 # What commands are needed to compile and run your code from the command line?
 ```
