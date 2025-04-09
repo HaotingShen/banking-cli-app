@@ -215,6 +215,7 @@ public class Menu {
         this.activeUser.setSecret(userSecret);
         System.out.println("Add the following code to your 2FA application (authy, google authenticatr, etc): "+userSecret);
         QRCodeGenerator.printQRCodeFromSecret(this.activeUser.getUsername(),this.activeUser.getSecret());
+        dataHandler.updateUserInfo();
     }
 
     public void recoverAccount() {
@@ -256,6 +257,7 @@ public class Menu {
     public void changePassword() {
         // just a wrapper since the option class takes in a function with no inputs or return type.
         resetPassword(this.activeUser);
+        dataHandler.updateUserInfo();
     }
     
     public void changeUsername() {
