@@ -30,11 +30,13 @@ public class Menu {
         privateOptions.add(new Option("View Account Number",this::getAccountNumber));
         privateOptions.add(new Option("Deposit",this::deposit));
         privateOptions.add(new Option("Withdraw",this::withdraw));
+        privateOptions.add(new Option("Transfer Money", this::transferMoney));
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Change Password", this::changePassword));
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA,()->activeUser.getSecret() == null));
         privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA,()->activeUser.getSecret() != null));
+        privateOptions.add(new Option("Change Username", this::changeUsername));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
     }
@@ -85,10 +87,13 @@ public class Menu {
 
 
         String chargeDesc = keyboardInput.getSafeInput("Charge description: ","",Function.identity());
-        Transaction newTransaction = userToCharge.issueCharge(chargeAmount, chargeDesc); 
-        if (newTransaction != null) {
-            dataHandler.addUserTransaction(userToCharge.getUsername(), newTransaction); //add transaction history to DB
-            System.out.println("Charge issued.");
+        Transaction issuerTransaction = activeUser.issueCharge(userToCharge, chargeAmount, chargeDesc);
+        if (issuerTransaction != null) {
+            dataHandler.addUserTransaction(activeUser.getUsername(), issuerTransaction);
+            dataHandler.addUserTransaction(userToCharge.getUsername(), userToCharge.issueChargeRecord(chargeAmount, activeUser.getUsername(), chargeDesc));
+        }
+        else {
+            System.out.println("Charge failed.");
         }
     }
 
@@ -117,6 +122,26 @@ public class Menu {
         Transaction newTransaction = activeUser.withdraw(amount);
         if (newTransaction!=null) {
             dataHandler.addUserTransaction(activeUser.getUsername(), newTransaction);
+        }
+    }
+
+    public void transferMoney() {
+        String accountNumber = keyboardInput.getSafeInput("Enter recipient's account number:", "", Function.identity());
+        User recipient = dataHandler.getUserByAccountNumber(accountNumber);
+    
+        if (recipient == null) {
+            System.out.println("No user found with that account number.");
+            return;
+        }
+    
+        double amount = keyboardInput.getSafeInput("Enter amount to transfer:", "Invalid amount. Please enter a number.", Double::parseDouble);
+        String description = keyboardInput.getSafeInput("Enter transfer description:", "", Function.identity());
+    
+        Transaction senderTransaction = activeUser.transferTo(recipient, amount, description);
+        if (senderTransaction != null) {
+            Transaction recipientTransaction = recipient.receiveTransfer(amount, activeUser.getUsername(), description);
+            dataHandler.addUserTransaction(activeUser.getUsername(), senderTransaction);
+            dataHandler.addUserTransaction(recipient.getUsername(), recipientTransaction);
         }
     }
 
@@ -195,6 +220,7 @@ public class Menu {
         this.activeUser.setSecret(userSecret);
         System.out.println("Add the following code to your 2FA application (authy, google authenticatr, etc): "+userSecret);
         QRCodeGenerator.printQRCodeFromSecret(this.activeUser.getUsername(),this.activeUser.getSecret());
+        dataHandler.updateUserInfo();
     }
 
     public void remove2FA() {
@@ -241,6 +267,24 @@ public class Menu {
     public void changePassword() {
         // just a wrapper since the option class takes in a function with no inputs or return type.
         resetPassword(this.activeUser);
+        dataHandler.updateUserInfo();
+    }
+    
+    public void changeUsername() {
+        String newUsername = keyboardInput.getSafeInput("Enter new username: ", "", Function.identity());
+
+        // checking if the new username is already taken
+        if (dataHandler.doesUserExist(newUsername)) {
+            System.out.println("Username already taken. Please choose another one.");
+            return;
+        }
+
+        String oldUsername = activeUser.getUsername();
+
+        activeUser.changeUsername(newUsername);
+        dataHandler.updateUsername(oldUsername, newUsername, activeUser);
+
+        System.out.println("Username changed successfully to: " + newUsername);
     }
 
     public boolean createUser(String username, String password, double balance) {
