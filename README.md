@@ -15,18 +15,18 @@ Team Members:
 5. An account should be able to withdraw
 6. A Database should be able to get and set user data
 7. A Database should be able to get and set transaction history
-8. An account should be able to issue a charge to itself (e.g. a service fee) or to another user (e.g. a merchant charging a customer)
+8. An account should be able to issue a charge to another user (e.g. a merchant charging a customer)
 9. An account should be able to request their statement
 
-# What user stories were complete this iteration?
+# What user stories were completed this iteration?
 1. Users should be saved persistently across sessions
 2. Transactions should be saved persistently across sessions
-3. A user should have a unique ID
+3. A user should have a unique account number
 4. A user should be able to reset (or recover) password
 5. A user should be able to transfer money to another user
 6. A banking app should validate user inputs
 7. A user should be allowed to change username
-8. A charge issues should increase issuer's balance by that amount
+8. A charge issue should increase the issuer's balance by that amount
 
 # What user stories do you intend to complete next iteration?
 1. A user account can be freezed
@@ -38,12 +38,11 @@ Team Members:
 7. An admin should be able to recall transactions
 8. An admin should be able to freeze a user account
 
-
 # Is there anything that you implemented but doesn't currently work?
 
 NA.
 
-To use the `recoverAccount` option, you will need some form of 2FA installed on your phone or computer. Apps like [Google Authenticator](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2), [Authy](https://www.authy.com/) and [FreeOTP](https://freeotp.github.io/) are commonly used, but there are many, many more. For example, you can simply use DuoMobile to scan the QR code.
+Note: To use the `Enable 2FA Recovery` option, you will need some form of 2FA installed on your phone or computer. Apps like [Google Authenticator](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2), [Authy](https://www.authy.com/) and [FreeOTP](https://freeotp.github.io/) are commonly used, but there are many more. For example, you can simply use DuoMobile to scan the QR code. Once the account is added, you will be able to use the `Reset Password` option on the login page to reset your password without logging in.
 
 # What commands are needed to compile and run your code from the command line?
 ```
