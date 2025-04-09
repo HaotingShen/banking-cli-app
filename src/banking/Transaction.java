@@ -1,7 +1,8 @@
 package banking;
+import java.io.Serializable;
 import java.util.Date;
 
-public class Transaction {
+public class Transaction implements Serializable {
     private Date date;
     private double amount;
     private String description;

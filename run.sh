@@ -28,5 +28,5 @@ else
 fi
 # Run the Menu class
 echo "Running the program..."
-java -cp bin banking.BankingApp
+java -cp "bin:lib/*" banking.BankingApp
 

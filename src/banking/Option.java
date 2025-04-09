@@ -1,12 +1,20 @@
 package banking;
 
+import java.util.function.BooleanSupplier;
+
 public class Option {
     private String optionName;
     private Runnable optionCall;
+    private BooleanSupplier isVisible;
 
-    public Option(String optionName, Runnable optionCall) {
+    public Option(String optionName, Runnable optionCall, BooleanSupplier isVisible) {
         this.optionName = optionName;
         this.optionCall = optionCall;
+        this.isVisible = isVisible;
+    }
+
+    public Option(String optionName, Runnable optionCall) {
+        this(optionName, optionCall, () -> true);
     }
 
     public boolean execute() {
@@ -19,5 +27,9 @@ public class Option {
 
     public String getOptionName() {
         return optionName;
+    }
+
+    public boolean isVisible() {
+        return isVisible.getAsBoolean();    
     }
 }

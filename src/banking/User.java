@@ -4,19 +4,28 @@ package banking;
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 
+import java.io.Serializable;
 import java.util.*;
 
-public class User {
+public class User implements Serializable {
 
     private String username;
     private String hashedPassword;
     private double balance;
+    private String recoverySecret;
+    private String accountNumber;
     
     public User(String username, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;
+        this.accountNumber = UUID.randomUUID().toString();
     }
+    
+    public String getAccountNumber() {
+		return accountNumber;
+    }
+    
     public Object getHashedPassword() {
         return hashedPassword;
     }
@@ -27,6 +36,27 @@ public class User {
     
     public double getBalance() {
         return balance;
+    }
+
+    public String getSecret() {
+        if (recoverySecret != null) {
+            return recoverySecret;
+        }
+        return null;
+    }
+
+    public void resetPassword(String newHashedPassword) {
+        this.hashedPassword = newHashedPassword;
+    }
+    
+    public void changeUsername(String newUsername) {
+        if (newUsername != null && !newUsername.trim().isEmpty()) {
+            this.username = newUsername;
+        }
+    }
+
+    public void setSecret(String secret) {
+        this.recoverySecret = secret;
     }
     //to check if two users are the same
     @Override
@@ -45,31 +75,36 @@ public class User {
         return Objects.hash(username, hashedPassword, balance);
     }
     
-    //Issue a charge
-    public Transaction issueCharge(double amount, String description) {
-        if (amount > 0 && balance >= amount) {
-            balance -= amount;
-            Transaction newTransaction = new Transaction(-amount, "Charge: " + description);
-            return newTransaction;
-        } 
-        else if (amount <= 0) {
-            System.out.println("Charge amount invalid.");
-        } 
-        else if (balance < amount) {
-            System.out.println("Insufficient balance.");
-        } 
-        else {
-            System.out.println("An error occurred. Please try again later.");
+    //issue a charge
+    public Transaction issueCharge(User target, double amount, String description) {
+        if (this.accountNumber.equals(target.accountNumber)) {
+            System.out.println("You cannot charge yourself.");
+            return null;
         }
-        return null;
+        if (amount <= 0) {
+            System.out.println("Charge amount invalid.");
+            return null;
+        }
+        if (target.balance < amount) {
+            System.out.println("Target user has insufficient funds.");
+            return null;
+        }
+        target.balance -= amount;
+        this.balance += amount;
+        System.out.println("Charge issued successfully. You received $" + String.format("%.2f", amount));
+        return new Transaction(amount, "Charge received from " + target.username + " - " + description);
     }
+
+    //create charge record for the target user
+    public Transaction issueChargeRecord(double amount, String issuerUsername, String description) {
+        return new Transaction(-amount, "Charged by " + issuerUsername + " - " + description);
+    }    
     
     //deposit amount
     public Transaction deposit(double amount) {
     	if (amount > 0) {
             balance += amount;
             Transaction newTransaction = new Transaction(amount, "Deposit");
-            // transactionHistory.add(newTransaction);
             System.out.println("Deposit successful. New balance: " + String.format("%.2f", balance));
             return newTransaction;
         } else {
@@ -83,7 +118,6 @@ public class User {
     	if (amount > 0 && balance >= amount) {
             balance -= amount;
             Transaction newTransaction = new Transaction(-amount, "Withdraw");
-            // transactionHistory.add(newTransaction);
             System.out.println("Withdrawal successful. New balance: " + String.format("%.2f", balance));
             return newTransaction;
         } else if (amount <= 0) {
@@ -92,6 +126,31 @@ public class User {
             System.out.println("Insufficient balance for withdrawal.");
         }
     	return null;
+    }
+
+    //transfer money to another user
+    public Transaction transferTo(User recipient, double amount, String description) {
+        if (this.accountNumber.equals(recipient.accountNumber)) {
+            System.out.println("You cannot transfer money to yourself.");
+            return null;
+        }
+        if (amount <= 0) {
+            System.out.println("Transfer amount must be positive.");
+            return null;
+        }
+        if (this.balance < amount) {
+            System.out.println("Insufficient funds for transfer.");
+            return null;
+        }
+        this.balance -= amount;
+        recipient.balance += amount;
+        System.out.println("Transfer successful. $" + String.format("%.2f", amount) + " sent to " + recipient.getUsername());
+        return new Transaction(-amount, "Transfer to " + recipient.getUsername() + " - " + description);
+    }
+    
+    //create transfer record for the recipient
+    public Transaction receiveTransfer(double amount, String senderName, String description) {
+        return new Transaction(amount, "Transfer from " + senderName + " - " + description);
     }
 
     //Request statement
