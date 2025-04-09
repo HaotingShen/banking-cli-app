@@ -34,8 +34,9 @@ public class Menu {
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Change Password", this::changePassword));
+        privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA,()->activeUser.getSecret() == null));
+        privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA,()->activeUser.getSecret() != null));
         privateOptions.add(new Option("Change Username", this::changeUsername));
-        privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA));
         privateOptions.add(new Option("Logout",this::logOut));
         this.running = false;
     }
@@ -145,21 +146,25 @@ public class Menu {
     }
 
     public void printMenu(List<Option> items) {
-        int i = 1;
+        List<Option> visibleItems = new ArrayList<>();
         for (Option item : items) {
+            if(item.isVisible()) visibleItems.add(item);
+        }
+        int i = 1;
+        for (Option item : visibleItems) {
             System.out.println(i + ". " + item.getOptionName());
             i++;
         }
         // passes a lambda which imposes the additional valid input range restriction. 
-        int userChoice = keyboardInput.getSafeInput("Enter a number [1-"+items.size()+"]: ","Invalid selection. Please enter a number between 1 and "+items.size(), input -> {
+        int userChoice = keyboardInput.getSafeInput("Enter a number [1-"+visibleItems.size()+"]: ","Invalid selection. Please enter a number between 1 and "+visibleItems.size(), input -> {
             int value = Integer.parseInt(input);
-            if (value < 1 || value > items.size()) {
+            if (value < 1 || value > visibleItems.size()) {
                 throw new IllegalArgumentException("Out of range");
             }
             return value;
         });
         i = 1;
-        for (Option item : items) {
+        for (Option item : visibleItems) {
             if (i == userChoice) {
                 item.execute();
             }
@@ -216,6 +221,11 @@ public class Menu {
         System.out.println("Add the following code to your 2FA application (authy, google authenticatr, etc): "+userSecret);
         QRCodeGenerator.printQRCodeFromSecret(this.activeUser.getUsername(),this.activeUser.getSecret());
         dataHandler.updateUserInfo();
+    }
+
+    public void remove2FA() {
+        this.activeUser.setSecret(null);
+        System.out.println("Your 2FA has been removed. Tread carefully...");
     }
 
     public void recoverAccount() {
