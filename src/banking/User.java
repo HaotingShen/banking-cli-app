@@ -96,8 +96,8 @@ public class User implements Serializable {
     }
 
     //create charge record for the target user
-    public Transaction issueChargeRecord(double amount, String issuerUsername, String description) {
-        return new Transaction(-amount, "Charged by " + issuerUsername + " - " + description);
+    public Transaction issueChargeRecord(double amount, String issuerUsername, String description, String transactionID) {
+        return new Transaction(-amount, "Charged by " + issuerUsername + " - " + description, transactionID);
     }    
     
     //deposit amount
@@ -149,8 +149,17 @@ public class User implements Serializable {
     }
     
     //create transfer record for the recipient
-    public Transaction receiveTransfer(double amount, String senderName, String description) {
-        return new Transaction(amount, "Transfer from " + senderName + " - " + description);
+    public Transaction receiveTransfer(double amount, String senderName, String description, String transactionID) {
+        return new Transaction(amount, "Transfer from " + senderName + " - " + description, transactionID);
+    }
+    
+    public Transaction recallTransaction(Transaction pastTransaction ) {
+    	Double amount = pastTransaction.getAmount();
+    	String newDescription = pastTransaction.getDescription()+" [RECALLED]";
+    	
+    	this.balance -= amount;
+    	return new Transaction(-amount, newDescription);
+    	
     }
 
     //Request statement

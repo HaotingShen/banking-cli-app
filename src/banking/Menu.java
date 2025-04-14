@@ -2,6 +2,7 @@ package banking;
 import banking.SafeInput;
 import java.security.MessageDigest; //future class, handle reading from our files for persistence
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import banking.Authenticator;
@@ -15,6 +16,9 @@ public class Menu {
     private List<Option> privateOptions;
     private boolean running;
     private SafeInput keyboardInput;
+    
+    // add a tentative admin for testing functionality purpose, construction of admins should be more carefully thought about
+    private Administrator admin = new Administrator("", "", 0, 0);
 
     public Menu(Database dataHandler, SafeInput keyboardInput) {
         this.dataHandler = dataHandler;
@@ -25,6 +29,10 @@ public class Menu {
         publicOptions.add(new Option("Create account", this::signUp));
         publicOptions.add(new Option("Reset Password", this::recoverAccount));
         publicOptions.add(new Option("Exit",this::shutDown));
+        //tentatively added two public options for testing purpose
+        //one problem is that do we only allow recalling transfers or deposit/withdraws can be recalled too
+        publicOptions.add(new Option("Recall Transaction",this::recallTransaction));
+        publicOptions.add(new Option("Print All Transaction",this::printAllTransactions));
         this.privateOptions = new ArrayList<>();
         privateOptions.add(new Option("Check Balance",this::getBalance));
         privateOptions.add(new Option("View Account Number",this::getAccountNumber));
@@ -90,7 +98,7 @@ public class Menu {
         Transaction issuerTransaction = activeUser.issueCharge(userToCharge, chargeAmount, chargeDesc);
         if (issuerTransaction != null) {
             dataHandler.addUserTransaction(activeUser.getUsername(), issuerTransaction);
-            dataHandler.addUserTransaction(userToCharge.getUsername(), userToCharge.issueChargeRecord(chargeAmount, activeUser.getUsername(), chargeDesc));
+            dataHandler.addUserTransaction(userToCharge.getUsername(), userToCharge.issueChargeRecord(chargeAmount, activeUser.getUsername(), chargeDesc, issuerTransaction.getTransactionID()));
         }
         else {
             System.out.println("Charge failed.");
@@ -139,7 +147,8 @@ public class Menu {
     
         Transaction senderTransaction = activeUser.transferTo(recipient, amount, description);
         if (senderTransaction != null) {
-            Transaction recipientTransaction = recipient.receiveTransfer(amount, activeUser.getUsername(), description);
+        	String thisTransactionID = senderTransaction.getTransactionID();
+            Transaction recipientTransaction = recipient.receiveTransfer(amount, activeUser.getUsername(), description, thisTransactionID);
             dataHandler.addUserTransaction(activeUser.getUsername(), senderTransaction);
             dataHandler.addUserTransaction(recipient.getUsername(), recipientTransaction);
         }
@@ -295,11 +304,27 @@ public class Menu {
         }
         return false;
     }
+    
+    public void recallTransaction() {
+    	//if (this.activeUser instanceof Administrator) { 
+	    	String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
+	    	HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
+	    	admin.recallTransactions(usersInfluenced);
+	    	dataHandler.updateUserInfo();
+    	//}
+    }
+    
+    public void printAllTransactions() {
+    	List<Transaction> transactionList = dataHandler.getAllTransactions();
+    	admin.printAllTransactions(transactionList);
+    	
+    }
 
     public void logOut() {
         this.activeUser = null;
         System.out.println("Logged out Succesfully");
     }
+    
     
     public User getActiveUser() {
     	return activeUser;

@@ -122,6 +122,42 @@ public class Database implements Serializable{
     	fileSystem.saveTransactionsToFile(mapToTransactions);
     	fileSystem.saveUsersToFile(mapToUser);
     }
+    
+    public HashMap<User, Transaction> recallTransaction(String transactionID) {
+    	HashMap<String, Transaction> usersInfluenced = new HashMap<>();
+    	for (Map.Entry<String, List<Transaction>> entry : mapToTransactions.entrySet()) {
+    		String username = entry.getKey();
+    		List<Transaction> transactionHistory = entry.getValue();
+
+			transactionHistory.removeIf(t -> {
+			    if (t.getTransactionID().equals(transactionID)) {
+			        Double amount = t.getAmount();
+			        usersInfluenced.put(username, t);
+			        return true;
+			    }
+			    return false;
+			});
+    	    
+    	}
+    	HashMap<User, Transaction> usersToReturn = new HashMap<>();
+    	for (Map.Entry<String, Transaction> entry : usersInfluenced.entrySet()) {
+    		String username = entry.getKey();
+    		Transaction transaction = entry.getValue();
+    		User user = getUserData(username);
+    		usersToReturn.put(user, transaction);
+    	}
+    	return usersToReturn;
+    }
+    
+    
+    public List<Transaction> getAllTransactions() {
+        List<Transaction> allTransactions = new ArrayList<>();
+        for (List<Transaction> txList : mapToTransactions.values()) {
+            allTransactions.addAll(txList);
+        }
+        return allTransactions;
+    }
+
 
     
 }

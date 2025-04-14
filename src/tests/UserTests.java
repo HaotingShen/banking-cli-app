@@ -87,7 +87,7 @@ public class UserTests {
         assertNotNull(transfer);
         database.addUserTransaction(sender.getUsername(), transfer);
 
-        Transaction receive = receiver.receiveTransfer(200.0, sender.getUsername(), "Rent payment");
+        Transaction receive = receiver.receiveTransfer(200.0, sender.getUsername(), "Rent payment", transfer.getTransactionID());
         database.addUserTransaction(receiver.getUsername(), receive);
 
         assertEquals(300.0, sender.getBalance(), 0.01);
