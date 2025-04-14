@@ -77,9 +77,7 @@ public class Menu {
     }
 
     public void printMenu(List<Option> items) {
-        // creates list of every option whose isVisible() returns true
         List<Option> visibleItems = items.stream().filter(Option::isVisible).collect(Collectors.toList());
-        // creates a list of option labels, uses AtomicInteger to prevent data races
         AtomicInteger counter = new AtomicInteger(1);
         List<String> labels = visibleItems.stream().map(opt -> counter.getAndIncrement() + ". " + opt.getOptionName()).collect(Collectors.toList());
         // sets the colWidth to the length of the maximum label + padding (=4)
