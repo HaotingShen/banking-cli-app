@@ -19,11 +19,12 @@ public class Menu {
     private User activeUser;
     private List<Option> publicOptions;
     private List<Option> privateOptions;
+    private List<Option> adminOptions;
     private boolean running;
     private SafeInput keyboardInput;
     // add a tentative admin for testing functionality purpose, construction of admins should be more carefully thought about
-    private Administrator admin = new Administrator("", "", 0, 0);
     private User subsystemUser;
+    private String menuScope = "public";
 
     public Menu(Database dataHandler, SafeInput keyboardInput) {
         this.dataHandler = dataHandler;
@@ -37,8 +38,6 @@ public class Menu {
         publicOptions.add(new Option("Exit",this::shutDown));
         //tentatively added two public options for testing purpose
         //one problem is that do we only allow recalling transfers or deposit/withdraws can be recalled too
-        publicOptions.add(new Option("Recall Transaction",this::recallTransaction));
-        publicOptions.add(new Option("Print All Transaction",this::printAllTransactions));
         this.privateOptions = new ArrayList<>();
         privateOptions.add(new Option("Check Balance",this::getBalance));
         privateOptions.add(new Option("View Account Number",this::getAccountNumber));
@@ -51,12 +50,25 @@ public class Menu {
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA,()->activeUser.getSecret() == null));
         privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA,()->activeUser.getSecret() != null));
         privateOptions.add(new Option("Change Username", this::changeUsername));
+        privateOptions.add(new Option("View Admin Panel", this::enableAdminView,()->activeUser.isAuthorizedFor(2)));
         privateOptions.add(new Option("Logout",this::logOut));
+        this.adminOptions = new ArrayList<>();
+        adminOptions.add(new Option("Print All Transaction",this::printAllTransactions));
+        adminOptions.add(new Option("Recall Transaction",this::recallTransaction));
+        adminOptions.add(new Option("Close Admin Panel",this::disableAdminView));
         this.running = false;
     }
     
     public Database getDataHandler() {
     	return dataHandler;
+    }
+
+    public void enableAdminView() {
+        this.menuScope = "admin";
+    }
+
+    public void disableAdminView() {
+        this.menuScope = "private";
     }
 
     public User getSubsystemUser() {
@@ -76,10 +88,16 @@ public class Menu {
 
     public void printScopedMenu() {
         // this still needs to be seperate from the authorization system, otherwise we run into later options calling a method on null
-        if (this.activeUser.equals(this.subsystemUser)) {
-            this.printMenu(publicOptions);
-        } else {
-            this.printMenu(privateOptions);
+        switch (this.menuScope) {
+            case "private":
+                this.printMenu(privateOptions);
+            break;
+            case "admin":
+                this.printMenu(adminOptions);
+            break;
+            default:
+                this.printMenu(publicOptions);
+            break;
         }
     }
 
@@ -196,6 +214,7 @@ public class Menu {
         if (dataHandler.doesUserExist(username)) {
             if(authenticateUserPass(username, password)) {
                 System.out.println("Login successful!");
+                this.activeUser.setAuthLevel(2);
             } else {
                 System.out.println("Login failed: password hashes do not match");
             }
@@ -208,6 +227,7 @@ public class Menu {
         User requestedAccount = dataHandler.getUserData(username);
         if (requestedAccount.getHashedPassword().equals(Authenticator.hashPassword(password))) {
             this.activeUser = requestedAccount;
+            this.menuScope = "private";
             return true;
         }
         return false;
@@ -304,28 +324,28 @@ public class Menu {
         if (!dataHandler.doesUserExist(username)) {
             User userToRegister = new User(username, Authenticator.hashPassword(password), balance);
             this.activeUser = dataHandler.createUser(userToRegister);
+            this.menuScope = "private";
             return true;
         }
         return false;
     }
     
     public void recallTransaction() {
-    	//if (this.activeUser instanceof Administrator) { 
-	    	String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
-	    	HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
-	    	admin.recallTransactions(usersInfluenced);
-	    	dataHandler.updateUserInfo();
-    	//}
+        String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
+        HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
+        new Administrator(this.activeUser).recallTransactions(usersInfluenced);
+        dataHandler.updateUserInfo();
+
     }
     
     public void printAllTransactions() {
-    	List<Transaction> transactionList = dataHandler.getAllTransactions();
-    	admin.printAllTransactions(transactionList);
-    	
+        List<Transaction> transactionList = dataHandler.getAllTransactions();
+        new Administrator(this.activeUser).printAllTransactions(transactionList);
     }
 
     public void logOut() {
         this.activeUser = subsystemUser;
+        this.menuScope = "public";
         System.out.println("Logged out Succesfully");
     }
     

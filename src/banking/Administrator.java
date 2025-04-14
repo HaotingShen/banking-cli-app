@@ -6,11 +6,8 @@ import java.util.Map;
 
 public class Administrator extends User {
 
-    private int authLevel;
-
-    public Administrator(String username, String hashedPassword, double balance, int authLevel) {
-        super(username, hashedPassword, balance);
-        this.authLevel = authLevel;
+    public Administrator(User linkedUser) {
+        super(linkedUser.getUsername(), linkedUser.getHashedPassword(), linkedUser.getBalance());
     }
     
     public void recallTransactions(HashMap<User, Transaction> userTransactions) {
