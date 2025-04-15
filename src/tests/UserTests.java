@@ -216,8 +216,8 @@ public class UserTests {
         database.createUser(issuer);
         database.createUser(target);
 
-        Transaction testCharge = issuer.issueCharge(target, 50.0, "Test Service");
-        Transaction chargeRecord = target.issueChargeRecord(50.0, issuer.getUsername(), "Test Service",testCharge.getTransactionID());
+        Transaction chargeIssued = issuer.issueCharge(target, 50.0, "Test Service");
+        Transaction chargeRecord = target.issueChargeRecord(50.0, issuer.getUsername(), "Test Service", chargeIssued.getTransactionID());
         database.addUserTransaction(target.getUsername(), chargeRecord);
 
         List<Transaction> targetTransactions = database.getUserTransaction(target.getUsername());
