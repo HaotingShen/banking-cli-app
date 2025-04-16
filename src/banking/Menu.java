@@ -3,7 +3,12 @@ import banking.SafeInput;
 import java.security.MessageDigest; //future class, handle reading from our files for persistence
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.function.BooleanSupplier;
+
 import banking.Authenticator;
 import banking.QRCodeGenerator;
 
@@ -15,11 +20,13 @@ public class Menu {
     private List<Option> privateOptions;
     private boolean running;
     private SafeInput keyboardInput;
+    private User subsystemUser;
 
     public Menu(Database dataHandler, SafeInput keyboardInput) {
         this.dataHandler = dataHandler;
         this.keyboardInput = keyboardInput;
-        this.activeUser = null;
+        this.subsystemUser = new User("__MENU_SUBSYSTEM__","0",0);
+        this.activeUser = subsystemUser;
         this.publicOptions = new ArrayList<>();
         publicOptions.add(new Option("Login to account", this::login));
         publicOptions.add(new Option("Create account", this::signUp));
@@ -45,6 +52,10 @@ public class Menu {
     	return dataHandler;
     }
 
+    public User getSubsystemUser() {
+        return this.subsystemUser;
+    }
+
     public void run() {
         this.running = true;
         while (this.running) {
@@ -57,11 +68,35 @@ public class Menu {
     }
 
     public void printScopedMenu() {
-        if (this.activeUser != null) {
-            this.printMenu(privateOptions);
-        } else {
+        // this still needs to be seperate from the authorization system, otherwise we run into later options calling a method on null
+        if (this.activeUser.equals(this.subsystemUser)) {
             this.printMenu(publicOptions);
+        } else {
+            this.printMenu(privateOptions);
         }
+    }
+
+    public void printMenu(List<Option> items) {
+        List<Option> visibleItems = items.stream().filter(Option::isVisible).collect(Collectors.toList());
+        AtomicInteger counter = new AtomicInteger(1);
+        List<String> labels = visibleItems.stream().map(opt -> counter.getAndIncrement() + ". " + opt.getOptionName()).collect(Collectors.toList());
+        // sets the colWidth to the length of the maximum label + padding (=4)
+        int colWidth = labels.stream().mapToInt(String::length).max().orElse(0) + 4;   
+        // prints a 2 column menu
+        IntStream.range(0, labels.size()).filter(i -> i % 2 == 0).forEach(i -> {
+                 String left  = labels.get(i);
+                 String right = (i + 1 < labels.size()) ? labels.get(i + 1) : "";
+                 // %-colWidth string -> "Print string using Left Justify, taking a minimum space of colWidth"
+                 System.out.printf("%-" + colWidth + "s%s%n", left, right);
+             });
+        // passes a lambda which imposes the additional valid input range restriction. 
+        int userChoice = keyboardInput.getSafeInput("Enter a number [1-"+visibleItems.size()+"]: ","Invalid selection. Please enter a number between 1 and "+visibleItems.size(), input -> {
+            int value = Integer.parseInt(input);
+            if (value < 1 || value > visibleItems.size()) throw new IllegalArgumentException("Out of range");
+            return value;
+        });
+        // executes the chosen option
+        visibleItems.get(userChoice-1).execute();
     }
 
     public void getBalance() {
@@ -145,33 +180,6 @@ public class Menu {
         }
     }
 
-    public void printMenu(List<Option> items) {
-        List<Option> visibleItems = new ArrayList<>();
-        for (Option item : items) {
-            if(item.isVisible()) visibleItems.add(item);
-        }
-        int i = 1;
-        for (Option item : visibleItems) {
-            System.out.println(i + ". " + item.getOptionName());
-            i++;
-        }
-        // passes a lambda which imposes the additional valid input range restriction. 
-        int userChoice = keyboardInput.getSafeInput("Enter a number [1-"+visibleItems.size()+"]: ","Invalid selection. Please enter a number between 1 and "+visibleItems.size(), input -> {
-            int value = Integer.parseInt(input);
-            if (value < 1 || value > visibleItems.size()) {
-                throw new IllegalArgumentException("Out of range");
-            }
-            return value;
-        });
-        i = 1;
-        for (Option item : visibleItems) {
-            if (i == userChoice) {
-                item.execute();
-            }
-            i++;
-        }
-    }
-
     private void login() {
         String username = keyboardInput.getSafeInput("Enter username: ","",Function.identity());
     
@@ -240,11 +248,8 @@ public class Menu {
             return;
         }
         int currentCode = keyboardInput.getSafeInput("Please enter your 6 digit 2FA code","Please enter a valid 6 digit code",input->{
-            if (input.length() == 6) {
-                return Integer.parseInt(input);
-            } else {
-                throw new IllegalArgumentException("Invalid Length");
-            }
+            if (input.length() == 6) return Integer.parseInt(input);
+            else throw new IllegalArgumentException("Invalid Length");
         });
         if (Authenticator.validateTOTP(requestedUser.getSecret(),currentCode)) {
             resetPassword(requestedUser);
@@ -297,7 +302,7 @@ public class Menu {
     }
 
     public void logOut() {
-        this.activeUser = null;
+        this.activeUser = subsystemUser;
         System.out.println("Logged out Succesfully");
     }
     
