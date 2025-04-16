@@ -4,7 +4,12 @@ import java.security.MessageDigest; //future class, handle reading from our file
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.function.BooleanSupplier;
+
 import banking.Authenticator;
 import banking.QRCodeGenerator;
 
@@ -14,16 +19,18 @@ public class Menu {
     private User activeUser;
     private List<Option> publicOptions;
     private List<Option> privateOptions;
+    private List<Option> adminOptions;
     private boolean running;
     private SafeInput keyboardInput;
-    
     // add a tentative admin for testing functionality purpose, construction of admins should be more carefully thought about
-    private Administrator admin = new Administrator("", "", 0, 0);
+    private User subsystemUser;
+    private String menuScope = "public";
 
     public Menu(Database dataHandler, SafeInput keyboardInput) {
         this.dataHandler = dataHandler;
         this.keyboardInput = keyboardInput;
-        this.activeUser = null;
+        this.subsystemUser = new User("__MENU_SUBSYSTEM__","0",0);
+        this.activeUser = subsystemUser;
         this.publicOptions = new ArrayList<>();
         publicOptions.add(new Option("Login to account", this::login));
         publicOptions.add(new Option("Create account", this::signUp));
@@ -31,8 +38,6 @@ public class Menu {
         publicOptions.add(new Option("Exit",this::shutDown));
         //tentatively added two public options for testing purpose
         //one problem is that do we only allow recalling transfers or deposit/withdraws can be recalled too
-        publicOptions.add(new Option("Recall Transaction",this::recallTransaction));
-        publicOptions.add(new Option("Print All Transaction",this::printAllTransactions));
         this.privateOptions = new ArrayList<>();
         privateOptions.add(new Option("Check Balance",this::getBalance));
         privateOptions.add(new Option("View Account Number",this::getAccountNumber));
@@ -45,12 +50,29 @@ public class Menu {
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA,()->activeUser.getSecret() == null));
         privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA,()->activeUser.getSecret() != null));
         privateOptions.add(new Option("Change Username", this::changeUsername));
+        privateOptions.add(new Option("View Admin Panel", this::enableAdminView,()->activeUser.isAuthorizedFor(2)));
         privateOptions.add(new Option("Logout",this::logOut));
+        this.adminOptions = new ArrayList<>();
+        adminOptions.add(new Option("Print All Transaction",this::printAllTransactions));
+        adminOptions.add(new Option("Recall Transaction",this::recallTransaction));
+        adminOptions.add(new Option("Close Admin Panel",this::disableAdminView));
         this.running = false;
     }
     
     public Database getDataHandler() {
     	return dataHandler;
+    }
+
+    public void enableAdminView() {
+        this.menuScope = "admin";
+    }
+
+    public void disableAdminView() {
+        this.menuScope = "private";
+    }
+
+    public User getSubsystemUser() {
+        return this.subsystemUser;
     }
 
     public void run() {
@@ -65,11 +87,41 @@ public class Menu {
     }
 
     public void printScopedMenu() {
-        if (this.activeUser != null) {
-            this.printMenu(privateOptions);
-        } else {
-            this.printMenu(publicOptions);
+        // this still needs to be seperate from the authorization system, otherwise we run into later options calling a method on null
+        switch (this.menuScope) {
+            case "private":
+                this.printMenu(privateOptions);
+            break;
+            case "admin":
+                this.printMenu(adminOptions);
+            break;
+            default:
+                this.printMenu(publicOptions);
+            break;
         }
+    }
+
+    public void printMenu(List<Option> items) {
+        List<Option> visibleItems = items.stream().filter(Option::isVisible).collect(Collectors.toList());
+        AtomicInteger counter = new AtomicInteger(1);
+        List<String> labels = visibleItems.stream().map(opt -> counter.getAndIncrement() + ". " + opt.getOptionName()).collect(Collectors.toList());
+        // sets the colWidth to the length of the maximum label + padding (=4)
+        int colWidth = labels.stream().mapToInt(String::length).max().orElse(0) + 4;   
+        // prints a 2 column menu
+        IntStream.range(0, labels.size()).filter(i -> i % 2 == 0).forEach(i -> {
+                 String left  = labels.get(i);
+                 String right = (i + 1 < labels.size()) ? labels.get(i + 1) : "";
+                 // %-colWidth string -> "Print string using Left Justify, taking a minimum space of colWidth"
+                 System.out.printf("%-" + colWidth + "s%s%n", left, right);
+             });
+        // passes a lambda which imposes the additional valid input range restriction. 
+        int userChoice = keyboardInput.getSafeInput("Enter a number [1-"+visibleItems.size()+"]: ","Invalid selection. Please enter a number between 1 and "+visibleItems.size(), input -> {
+            int value = Integer.parseInt(input);
+            if (value < 1 || value > visibleItems.size()) throw new IllegalArgumentException("Out of range");
+            return value;
+        });
+        // executes the chosen option
+        visibleItems.get(userChoice-1).execute();
     }
 
     public void getBalance() {
@@ -154,33 +206,6 @@ public class Menu {
         }
     }
 
-    public void printMenu(List<Option> items) {
-        List<Option> visibleItems = new ArrayList<>();
-        for (Option item : items) {
-            if(item.isVisible()) visibleItems.add(item);
-        }
-        int i = 1;
-        for (Option item : visibleItems) {
-            System.out.println(i + ". " + item.getOptionName());
-            i++;
-        }
-        // passes a lambda which imposes the additional valid input range restriction. 
-        int userChoice = keyboardInput.getSafeInput("Enter a number [1-"+visibleItems.size()+"]: ","Invalid selection. Please enter a number between 1 and "+visibleItems.size(), input -> {
-            int value = Integer.parseInt(input);
-            if (value < 1 || value > visibleItems.size()) {
-                throw new IllegalArgumentException("Out of range");
-            }
-            return value;
-        });
-        i = 1;
-        for (Option item : visibleItems) {
-            if (i == userChoice) {
-                item.execute();
-            }
-            i++;
-        }
-    }
-
     private void login() {
         String username = keyboardInput.getSafeInput("Enter username: ","",Function.identity());
     
@@ -189,6 +214,7 @@ public class Menu {
         if (dataHandler.doesUserExist(username)) {
             if(authenticateUserPass(username, password)) {
                 System.out.println("Login successful!");
+                this.activeUser.setAuthLevel(2);
             } else {
                 System.out.println("Login failed: password hashes do not match");
             }
@@ -201,6 +227,7 @@ public class Menu {
         User requestedAccount = dataHandler.getUserData(username);
         if (requestedAccount.getHashedPassword().equals(Authenticator.hashPassword(password))) {
             this.activeUser = requestedAccount;
+            this.menuScope = "private";
             return true;
         }
         return false;
@@ -249,11 +276,8 @@ public class Menu {
             return;
         }
         int currentCode = keyboardInput.getSafeInput("Please enter your 6 digit 2FA code","Please enter a valid 6 digit code",input->{
-            if (input.length() == 6) {
-                return Integer.parseInt(input);
-            } else {
-                throw new IllegalArgumentException("Invalid Length");
-            }
+            if (input.length() == 6) return Integer.parseInt(input);
+            else throw new IllegalArgumentException("Invalid Length");
         });
         if (Authenticator.validateTOTP(requestedUser.getSecret(),currentCode)) {
             resetPassword(requestedUser);
@@ -300,31 +324,32 @@ public class Menu {
         if (!dataHandler.doesUserExist(username)) {
             User userToRegister = new User(username, Authenticator.hashPassword(password), balance);
             this.activeUser = dataHandler.createUser(userToRegister);
+            this.menuScope = "private";
             return true;
         }
         return false;
     }
     
     public void recallTransaction() {
-    	String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
-    	HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
-    	if (usersInfluenced.isEmpty()) {
+        String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
+        HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
+        if (usersInfluenced.isEmpty()) {
     		System.out.println("No matching transaction found for the given ID!");
     		return ;
     	}
-    	admin.recallTransactions(usersInfluenced);
-    	dataHandler.updateUserInfo();
-    	dataHandler.saveAllTransactions();
+        new Administrator(this.activeUser).recallTransactions(usersInfluenced);
+        dataHandler.updateUserInfo();
+
     }
     
     public void printAllTransactions() {
-    	List<Transaction> transactionList = dataHandler.getAllTransactions();
-    	admin.printAllTransactions(transactionList);
-    	
+        List<Transaction> transactionList = dataHandler.getAllTransactions();
+        new Administrator(this.activeUser).printAllTransactions(transactionList);
     }
 
     public void logOut() {
-        this.activeUser = null;
+        this.activeUser = subsystemUser;
+        this.menuScope = "public";
         System.out.println("Logged out Succesfully");
     }
     

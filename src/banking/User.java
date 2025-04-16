@@ -14,19 +14,29 @@ public class User implements Serializable {
     private double balance;
     private String recoverySecret;
     private String accountNumber;
+    private int authLevel;
     
     public User(String username, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;
         this.accountNumber = UUID.randomUUID().toString();
+        this.authLevel = 0;
     }
     
     public String getAccountNumber() {
 		return accountNumber;
     }
+
+    public void setAuthLevel(int authLevel) {
+        this.authLevel = authLevel;
+    }
+
+    public boolean isAuthorizedFor(int requiredClearance) {
+        return this.authLevel >= requiredClearance;
+    }
     
-    public Object getHashedPassword() {
+    public String getHashedPassword() {
         return hashedPassword;
     }
 

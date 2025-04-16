@@ -81,7 +81,7 @@ public class MenuTests {
     void testLogOut() throws Exception {
         this.menu.createUser("Test", "password", 0);
         this.menu.logOut();
-        assertNull(menu.getActiveUser()); // Active user should be null after logout
+        assertEquals(menu.getActiveUser(),menu.getSubsystemUser()); // Active user should be null after logout
         this.menu.getDataHandler().deleteUser("Test");
     }
     
