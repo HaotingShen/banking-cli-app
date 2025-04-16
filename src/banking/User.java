@@ -165,13 +165,30 @@ public class User implements Serializable {
     //Request statement
     public void printStatement(List<Transaction> transactions) {
         System.out.println("\n--- Account Statement ---");
-        if(transactions != null) {
+        if (transactions != null) {
             for (Transaction t : transactions) {
-                System.out.printf("[%s] %s: $%.2f\n", 
-                    t.getDate(), t.getDescription(), t.getAmount());
+                if (t != null) {
+                    String extra = "";
+                    if (t instanceof Loan loan) {
+                        extra = String.format(" [Loan: Approved=%b, Paid=%.2f/%.2f]",
+                            loan.isApproved(), loan.getAmountPaid(), loan.getAmount());
+                    }
+                    System.out.printf("[%s] %s: $%.2f%s\n", t.getDate(), t.getDescription(), t.getAmount(), extra);
+                }
             }
         }
         System.out.printf("Current Balance: $%.2f\n", balance);
     }
+
+    //Request loan
+    public Loan requestLoan(double amount, String reason) {
+        if (amount <= 0) {
+            System.out.println("Loan amount must be positive.");
+            return null;
+        }
+        Loan loan = new Loan(amount, "Loan request - " + reason);
+        System.out.println("Loan request submitted for $" + String.format("%.2f", amount));
+        return loan;
+    }    
     
 }

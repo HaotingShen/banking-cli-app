@@ -1,12 +1,9 @@
 package banking;
-import banking.SafeInput;
-import java.security.MessageDigest; //future class, handle reading from our files for persistence
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashMap; //future class, handle reading from our files for persistence
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
-import banking.Authenticator;
-import banking.QRCodeGenerator;
 
 public class Menu {
     
@@ -33,6 +30,7 @@ public class Menu {
         //one problem is that do we only allow recalling transfers or deposit/withdraws can be recalled too
         publicOptions.add(new Option("Recall Transaction",this::recallTransaction));
         publicOptions.add(new Option("Print All Transaction",this::printAllTransactions));
+        publicOptions.add(new Option("Review All Loans", this::adminReviewLoans));
         this.privateOptions = new ArrayList<>();
         privateOptions.add(new Option("Check Balance",this::getBalance));
         privateOptions.add(new Option("View Account Number",this::getAccountNumber));
@@ -41,6 +39,7 @@ public class Menu {
         privateOptions.add(new Option("Transfer Money", this::transferMoney));
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
+        privateOptions.add(new Option("Request Loan", this::requestLoan));
         privateOptions.add(new Option("Change Password", this::changePassword));
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA,()->activeUser.getSecret() == null));
         privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA,()->activeUser.getSecret() != null));
@@ -318,6 +317,31 @@ public class Menu {
     	List<Transaction> transactionList = dataHandler.getAllTransactions();
     	admin.printAllTransactions(transactionList);
     	
+    }
+
+    public void requestLoan() {
+        double amount = keyboardInput.getSafeInput("Loan amount:", "Invalid amount. Please enter a number.", Double::parseDouble);
+        String reason = keyboardInput.getSafeInput("Loan purpose:", "", Function.identity());
+        Loan loan = activeUser.requestLoan(amount, reason);
+        if (loan != null) {
+            dataHandler.addUserTransaction(activeUser.getUsername(), loan);
+            System.out.println("Awaiting admin approval.");
+        }
+    }
+
+    public void adminReviewLoans() {
+        Map<String, List<Transaction>> allTransactions = dataHandler.getAllTransactionMap();
+        admin.showAllLoansWithStatus(allTransactions);
+
+        String loanIdToApprove = keyboardInput.getSafeInput("\nEnter the Loan ID to approve (or type 'exit' to exit):", "Invalid input.", Function.identity());
+
+        if (!loanIdToApprove.equalsIgnoreCase("exit")) {
+            boolean approved = admin.approveLoanById(loanIdToApprove, allTransactions);
+            if (approved) {
+                dataHandler.updateUserInfo();
+                dataHandler.saveAllTransactions();
+            }
+        }
     }
 
     public void logOut() {

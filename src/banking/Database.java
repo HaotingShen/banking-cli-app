@@ -1,16 +1,9 @@
 package banking;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.security.MessageDigest;
-import banking.Transaction;
 
 
 public class Database implements Serializable{
@@ -158,6 +151,13 @@ public class Database implements Serializable{
         return allTransactions;
     }
 
-
+    //returns the full map of transactions by username
+    public Map<String, List<Transaction>> getAllTransactionMap() {
+        return mapToTransactions;
+    }
+    
+    public void saveAllTransactions() {
+        fileSystem.saveTransactionsToFile(mapToTransactions);
+    }
     
 }

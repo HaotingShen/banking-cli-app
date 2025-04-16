@@ -32,5 +32,49 @@ public class Administrator extends User {
         }
     }
     
+    public void showAllLoansWithStatus(Map<String, List<Transaction>> allTransactions) {
+        System.out.println("\n--- Pending Loans ---");
+        for (Map.Entry<String, List<Transaction>> entry : allTransactions.entrySet()) {
+            String username = entry.getKey();
+            for (Transaction t : entry.getValue()) {
+                if (t instanceof Loan loan && !loan.isApproved()) {
+                    System.out.printf("(%s): %s: $%.2f [ID: %s] [Approved=%b, Paid=%.2f/%.2f]\n",
+                        username, loan.getDescription(), loan.getAmount(), loan.getTransactionID(), 
+                        loan.isApproved(), loan.getAmountPaid(), loan.getAmount());
+                }
+            }
+        }
+    
+        System.out.println("\n--- Approved Loans ---");
+        for (Map.Entry<String, List<Transaction>> entry : allTransactions.entrySet()) {
+            String username = entry.getKey();
+            for (Transaction t : entry.getValue()) {
+                if (t instanceof Loan loan && loan.isApproved()) {
+                    System.out.printf("(%s): %s: $%.2f [ID: %s] [Approved=%b, Paid=%.2f/%.2f]\n",
+                        username, loan.getDescription(), loan.getAmount(), loan.getTransactionID(), 
+                        loan.isApproved(), loan.getAmountPaid(), loan.getAmount());
+                }
+            }
+        }
+    }
+    
+    public boolean approveLoanById(String transactionID, Map<String, List<Transaction>> allTransactions) {
+        for (Map.Entry<String, List<Transaction>> entry : allTransactions.entrySet()) {
+            List<Transaction> txList = entry.getValue();
+            for (Transaction t : txList) {
+                if (t instanceof Loan loan && t.getTransactionID().equals(transactionID)) {
+                    if (loan.isApproved()) {
+                        System.out.println("This loan has already been approved.");
+                        return false;
+                    }
+                    loan.approve();
+                    System.out.println("Loan approved successfully.");
+                    return true;
+                }
+            }
+        }
+        System.out.println("No matching loan found for the given ID.");
+        return false;
+    }
     
 }
