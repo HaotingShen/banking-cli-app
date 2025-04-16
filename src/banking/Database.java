@@ -158,6 +158,10 @@ public class Database implements Serializable{
         return allTransactions;
     }
 
+    
+    public void saveAllTransactions() {
+        fileSystem.saveTransactionsToFile(mapToTransactions);
+    }
 
     
 }

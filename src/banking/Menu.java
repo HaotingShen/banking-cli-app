@@ -306,12 +306,15 @@ public class Menu {
     }
     
     public void recallTransaction() {
-    	//if (this.activeUser instanceof Administrator) { 
-	    	String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
-	    	HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
-	    	admin.recallTransactions(usersInfluenced);
-	    	dataHandler.updateUserInfo();
-    	//}
+    	String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
+    	HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
+    	if (usersInfluenced.isEmpty()) {
+    		System.out.println("No matching transaction found for the given ID!");
+    		return ;
+    	}
+    	admin.recallTransactions(usersInfluenced);
+    	dataHandler.updateUserInfo();
+    	dataHandler.saveAllTransactions();
     }
     
     public void printAllTransactions() {
