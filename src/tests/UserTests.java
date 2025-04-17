@@ -87,7 +87,7 @@ public class UserTests {
         assertNotNull(transfer);
         database.addUserTransaction(sender.getUsername(), transfer);
 
-        Transaction receive = receiver.receiveTransfer(200.0, sender.getUsername(), "Rent payment");
+        Transaction receive = receiver.receiveTransfer(200.0, sender.getUsername(), "Rent payment", transfer.getTransactionID());
         database.addUserTransaction(receiver.getUsername(), receive);
 
         assertEquals(300.0, sender.getBalance(), 0.01);
@@ -216,8 +216,8 @@ public class UserTests {
         database.createUser(issuer);
         database.createUser(target);
 
-        issuer.issueCharge(target, 50.0, "Test Service");
-        Transaction chargeRecord = target.issueChargeRecord(50.0, issuer.getUsername(), "Test Service");
+        Transaction chargeIssued = issuer.issueCharge(target, 50.0, "Test Service");
+        Transaction chargeRecord = target.issueChargeRecord(50.0, issuer.getUsername(), "Test Service", chargeIssued.getTransactionID());
         database.addUserTransaction(target.getUsername(), chargeRecord);
 
         List<Transaction> targetTransactions = database.getUserTransaction(target.getUsername());

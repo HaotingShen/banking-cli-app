@@ -25,3 +25,5 @@ replay_pid*
 bin/
 .vscode/
 .metadata/
+transactionMap.ser
+userMap.ser
