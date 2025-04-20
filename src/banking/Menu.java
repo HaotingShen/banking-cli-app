@@ -359,7 +359,7 @@ public class Menu {
         String loanIdToApprove = keyboardInput.getSafeInput("\nEnter the Loan ID to approve (or type 'exit' to exit):", "Invalid input.", Function.identity());
 
         if (!loanIdToApprove.equalsIgnoreCase("exit")) {
-            boolean approved = admin.approveLoanById(loanIdToApprove, allTransactions);
+            boolean approved = admin.approveLoanById(loanIdToApprove, allTransactions, dataHandler);
             if (approved) {
                 dataHandler.updateUserInfo();
                 dataHandler.saveAllTransactions();

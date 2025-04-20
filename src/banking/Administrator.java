@@ -57,8 +57,9 @@ public class Administrator extends User {
         }
     }
     
-    public boolean approveLoanById(String transactionID, Map<String, List<Transaction>> allTransactions) {
+    public boolean approveLoanById(String transactionID, Map<String, List<Transaction>> allTransactions, Database db) {
         for (Map.Entry<String, List<Transaction>> entry : allTransactions.entrySet()) {
+            String username = entry.getKey();
             List<Transaction> txList = entry.getValue();
             for (Transaction t : txList) {
                 if (t instanceof Loan loan && t.getTransactionID().equals(transactionID)) {
@@ -67,7 +68,11 @@ public class Administrator extends User {
                         return false;
                     }
                     loan.approve();
-                    System.out.println("Loan approved successfully.");
+                    User loanUser = db.getUserData(username);
+                    if (loanUser != null) {
+                        loanUser.depositSilently(loan.getAmount());
+                        System.out.println("Loan approved successfully.");
+                    }
                     return true;
                 }
             }

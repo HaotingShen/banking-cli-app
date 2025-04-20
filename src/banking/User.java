@@ -123,6 +123,13 @@ public class User implements Serializable {
     	return null;
     }
 
+    //deposit silently without transaction record or printout
+    public void depositSilently(double amount) {
+        if (amount > 0) {
+            this.balance += amount;
+        }
+    }
+
     //withdraw amount
     public Transaction withdraw(double amount) {
     	if (amount > 0 && balance >= amount) {
