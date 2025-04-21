@@ -48,6 +48,8 @@ public class Menu {
         privateOptions.add(new Option("Transfer Money", this::transferMoney));
         privateOptions.add(new Option("Issue Charge", this::issueCharge));
         privateOptions.add(new Option("Print Statement", this::printStatement));
+        privateOptions.add(new Option("Request Loan", this::requestLoan));
+        privateOptions.add(new Option("Repay Loan", this::repayLoan));
         privateOptions.add(new Option("Change Password", this::changePassword));
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA, () -> activeUser.getSecret() == null));
         privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA, () -> activeUser.getSecret() != null));
@@ -59,6 +61,7 @@ public class Menu {
         this.adminOptions = new ArrayList<>();
         adminOptions.add(new Option("Print All Transaction", this::printAllTransactions));
         adminOptions.add(new Option("Recall Transaction", this::recallTransaction));
+        adminOptions.add(new Option("Review All Loans", this::adminReviewLoans));
     }
 
 
