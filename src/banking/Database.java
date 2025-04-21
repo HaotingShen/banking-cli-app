@@ -1,16 +1,9 @@
 package banking;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.security.MessageDigest;
-import banking.Transaction;
 
 
 public class Database implements Serializable{
@@ -124,29 +117,34 @@ public class Database implements Serializable{
     }
     
     public HashMap<User, Transaction> recallTransaction(String transactionID) {
-    	HashMap<String, Transaction> usersInfluenced = new HashMap<>();
-    	for (Map.Entry<String, List<Transaction>> entry : mapToTransactions.entrySet()) {
-    		String username = entry.getKey();
-    		List<Transaction> transactionHistory = entry.getValue();
-
-			transactionHistory.removeIf(t -> {
-			    if (t.getTransactionID().equals(transactionID)) {
-			        Double amount = t.getAmount();
-			        usersInfluenced.put(username, t);
-			        return true;
-			    }
-			    return false;
-			});
-    	    
-    	}
-    	HashMap<User, Transaction> usersToReturn = new HashMap<>();
-    	for (Map.Entry<String, Transaction> entry : usersInfluenced.entrySet()) {
-    		String username = entry.getKey();
-    		Transaction transaction = entry.getValue();
-    		User user = getUserData(username);
-    		usersToReturn.put(user, transaction);
-    	}
-    	return usersToReturn;
+        HashMap<User, Transaction> usersToReturn = new HashMap<>();
+        //iterate through the map of transactions
+        for (Map.Entry<String, List<Transaction>> entry: mapToTransactions.entrySet()) {
+            String username = entry.getKey();
+            List<Transaction> transactionHistory = entry.getValue();
+            for (Transaction t : new ArrayList<>(transactionHistory)) {
+                if (t.getTransactionID().equals(transactionID)) {
+                    //loan-specific checks
+                    if (t instanceof Loan loan) {
+                        if (!loan.isApproved()) {
+                            System.out.println("Cannot recall an unapproved loan!");
+                            return new HashMap<>();
+                        }
+                        if (loan.isPaidOff()) {
+                            System.out.println("Cannot recall a fully paid loan!");
+                            return new HashMap<>();
+                        }
+                    }
+                    transactionHistory.remove(t);
+                    User user = getUserData(username);
+                    if (user != null) {
+                        usersToReturn.put(user, t);
+                    }
+                    break;
+                }
+            }
+        }
+        return usersToReturn;
     }
     
     
@@ -158,10 +156,13 @@ public class Database implements Serializable{
         return allTransactions;
     }
 
+    //returns the full map of transactions by username
+    public Map<String, List<Transaction>> getAllTransactionMap() {
+        return mapToTransactions;
+    }
     
     public void saveAllTransactions() {
         fileSystem.saveTransactionsToFile(mapToTransactions);
     }
-
     
 }

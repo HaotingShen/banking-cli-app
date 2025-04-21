@@ -1,17 +1,12 @@
 package banking;
-import banking.SafeInput;
-import java.security.MessageDigest; //future class, handle reading from our files for persistence
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.function.BooleanSupplier;
-
-import banking.Authenticator;
-import banking.QRCodeGenerator;
 
 public class Menu {
     
@@ -22,7 +17,6 @@ public class Menu {
     private List<Option> adminOptions;
     private boolean running;
     private SafeInput keyboardInput;
-    // add a tentative admin for testing functionality purpose, construction of admins should be more carefully thought about
     private User subsystemUser;
     private String menuScope = "public";
 
@@ -36,8 +30,6 @@ public class Menu {
         publicOptions.add(new Option("Create account", this::signUp));
         publicOptions.add(new Option("Reset Password", this::recoverAccount));
         publicOptions.add(new Option("Exit",this::shutDown));
-        //tentatively added two public options for testing purpose
-        //one problem is that do we only allow recalling transfers or deposit/withdraws can be recalled too
         this.privateOptions = new ArrayList<>();
         privateOptions.add(new Option("Check Balance",this::getBalance));
         privateOptions.add(new Option("View Account Number",this::getAccountNumber));
@@ -46,6 +38,7 @@ public class Menu {
         privateOptions.add(new Option("Transfer Money", this::transferMoney));
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
+        privateOptions.add(new Option("Request Loan", this::requestLoan));
         privateOptions.add(new Option("Change Password", this::changePassword));
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA,()->activeUser.getSecret() == null));
         privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA,()->activeUser.getSecret() != null));
@@ -55,6 +48,7 @@ public class Menu {
         this.adminOptions = new ArrayList<>();
         adminOptions.add(new Option("Print All Transaction",this::printAllTransactions));
         adminOptions.add(new Option("Recall Transaction",this::recallTransaction));
+        adminOptions.add(new Option("Review All Loans", this::adminReviewLoans));
         adminOptions.add(new Option("Close Admin Panel",this::disableAdminView));
         this.running = false;
     }
@@ -330,21 +324,57 @@ public class Menu {
         return false;
     }
     
+
     public void recallTransaction() {
-        String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
+        String transactionID = keyboardInput.getSafeInput("Which transaction would you like to recall? (type transaction id): ","",Function.identity());
+        boolean idExists = dataHandler.getAllTransactions().stream().anyMatch(t -> t.getTransactionID().equals(transactionID));
         HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
+
         if (usersInfluenced.isEmpty()) {
-    		System.out.println("No matching transaction found for the given ID!");
-    		return ;
-    	}
+            //match found but recall was not allowed by rules, do nothing
+            if (idExists) {
+                return;
+            } 
+            //no match found, return error message
+            else {
+                System.out.println("No matching transaction found for the given ID!");
+                return;
+            }
+        }
         new Administrator(this.activeUser).recallTransactions(usersInfluenced);
         dataHandler.updateUserInfo();
-
+        dataHandler.saveAllTransactions();
     }
-    
+
     public void printAllTransactions() {
         List<Transaction> transactionList = dataHandler.getAllTransactions();
         new Administrator(this.activeUser).printAllTransactions(transactionList);
+    }
+
+    public void requestLoan() {
+        double amount = keyboardInput.getSafeInput("Loan amount:", "Invalid amount. Please enter a number.", Double::parseDouble);
+        String reason = keyboardInput.getSafeInput("Loan purpose:", "", Function.identity());
+        Loan loan = activeUser.requestLoan(amount, reason);
+        if (loan != null) {
+            dataHandler.addUserTransaction(activeUser.getUsername(), loan);
+            System.out.println("Awaiting admin approval.");
+        }
+    }
+
+    public void adminReviewLoans() {
+        Map<String, List<Transaction>> allTransactions = dataHandler.getAllTransactionMap();
+        Administrator admin = new Administrator(activeUser);
+        admin.showAllLoansWithStatus(allTransactions);
+
+        String loanIdToApprove = keyboardInput.getSafeInput("\nEnter the Loan ID to approve (or type 'exit' to exit):", "Invalid input.", Function.identity());
+
+        if (!loanIdToApprove.equalsIgnoreCase("exit")) {
+            boolean approved = admin.approveLoanById(loanIdToApprove, allTransactions, dataHandler);
+            if (approved) {
+                dataHandler.updateUserInfo();
+                dataHandler.saveAllTransactions();
+            }
+        }
     }
 
     public void logOut() {

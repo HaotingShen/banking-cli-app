@@ -123,6 +123,13 @@ public class User implements Serializable {
     	return null;
     }
 
+    //deposit silently without transaction record or printout
+    public void depositSilently(double amount) {
+        if (amount > 0) {
+            this.balance += amount;
+        }
+    }
+
     //withdraw amount
     public Transaction withdraw(double amount) {
     	if (amount > 0 && balance >= amount) {
@@ -163,25 +170,46 @@ public class User implements Serializable {
         return new Transaction(amount, "Transfer from " + senderName + " - " + description, transactionID);
     }
     
-    public Transaction recallTransaction(Transaction pastTransaction ) {
-    	Double amount = pastTransaction.getAmount();
-    	String newDescription = pastTransaction.getDescription()+" [RECALLED]";
-    	
-    	this.balance -= amount;
-    	return new Transaction(-amount, newDescription);
-    	
-    }
+    public Transaction recallTransaction(Transaction pastTransaction) {
+        double amount = pastTransaction.getAmount();
+        String newDescription = pastTransaction.getDescription() + " [RECALLED]";
+
+        if (pastTransaction instanceof Loan loan) {
+            //revert only unpaid portion
+            amount = loan.getAmount() - loan.getAmountPaid();
+        }         
+
+        this.balance -= amount;
+        return new Transaction(-amount, newDescription);
+    }   
 
     //Request statement
     public void printStatement(List<Transaction> transactions) {
         System.out.println("\n--- Account Statement ---");
-        if(transactions != null) {
+        if (transactions != null) {
             for (Transaction t : transactions) {
-                System.out.printf("[%s] %s: $%.2f\n", 
-                    t.getDate(), t.getDescription(), t.getAmount());
+                if (t != null) {
+                    String extra = "";
+                    if (t instanceof Loan loan) {
+                        extra = String.format(" [Approved=%b, Paid=%.2f/%.2f]",
+                            loan.isApproved(), loan.getAmountPaid(), loan.getAmount());
+                    }
+                    System.out.printf("[%s] %s: $%.2f%s\n", t.getDate(), t.getDescription(), t.getAmount(), extra);
+                }
             }
         }
         System.out.printf("Current Balance: $%.2f\n", balance);
     }
+
+    //Request loan
+    public Loan requestLoan(double amount, String reason) {
+        if (amount <= 0) {
+            System.out.println("Loan amount must be positive.");
+            return null;
+        }
+        Loan loan = new Loan(amount, "Loan request - " + reason);
+        System.out.println("Loan request submitted for $" + String.format("%.2f", amount));
+        return loan;
+    }    
     
 }
