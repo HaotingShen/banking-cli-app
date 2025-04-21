@@ -174,10 +174,10 @@ public class User implements Serializable {
         double amount = pastTransaction.getAmount();
         String newDescription = pastTransaction.getDescription() + " [RECALLED]";
 
-        if (pastTransaction instanceof Loan loan) {
-            //revert only unpaid portion
-            amount = loan.getAmount() - loan.getAmountPaid();
-        }         
+        // if (pastTransaction instanceof Loan loan) {
+        //     //revert only unpaid portion
+        //     amount = loan.getAmount() - loan.getAmountPaid();
+        // }         
 
         this.balance -= amount;
         return new Transaction(-amount, newDescription);
@@ -211,5 +211,33 @@ public class User implements Serializable {
         System.out.println("Loan request submitted for $" + String.format("%.2f", amount));
         return loan;
     }    
+
+    //Repay loan
+    public Transaction repayLoan(Loan loan, double amount) {
+        if (!loan.isApproved()) {
+            System.out.println("Cannot repay an unapproved loan.");
+            return null;
+        }
+        if (loan.isPaidOff()) {
+            System.out.println("This loan has already been paid off.");
+            return null;
+        }
+        if (amount <= 0) {
+            System.out.println("Invalid amount for repayment.");
+            return null;
+        }
+        double remaining = loan.getAmount() - loan.getAmountPaid();
+        if (this.balance < Math.min(amount, remaining)) {
+            System.out.println("Insufficient balance for repayment.");
+            return null;
+        }
+
+        double repayAmount = Math.min(amount, remaining);
+        this.balance -= repayAmount;
+        loan.makeRepayment(repayAmount);
+        System.out.printf("Repayment successful. Repaid: $%.2f%n", repayAmount);
+
+        return new Transaction(-repayAmount, "Loan repayment - " + loan.getDescription());
+    }
     
 }

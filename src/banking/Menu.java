@@ -39,6 +39,7 @@ public class Menu {
         privateOptions.add(new Option("Issue Charge",this::issueCharge));
         privateOptions.add(new Option("Print Statement",this::printStatement));
         privateOptions.add(new Option("Request Loan", this::requestLoan));
+        privateOptions.add(new Option("Repay Loan", this::repayLoan));
         privateOptions.add(new Option("Change Password", this::changePassword));
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA,()->activeUser.getSecret() == null));
         privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA,()->activeUser.getSecret() != null));
@@ -361,6 +362,43 @@ public class Menu {
         }
     }
 
+    public void repayLoan() {
+        List<Transaction> userTx = dataHandler.getUserTransaction(activeUser.getUsername());
+        System.out.println("\n--- Your Loans ---");
+        for (Transaction t : userTx) {
+            if (t instanceof Loan loan) {
+                System.out.printf("%s: $%.2f [Approved=%b, Paid=%.2f/%.2f] [ID: %s]\n",
+                    loan.getDescription(), loan.getAmount(), loan.isApproved(),
+                    loan.getAmountPaid(), loan.getAmount(), loan.getTransactionID());
+            }
+        }
+    
+        String loanID = keyboardInput.getSafeInput("Enter Loan ID to repay (or type 'exit' to exit):", "", Function.identity());
+        if (loanID.equalsIgnoreCase("exit")) {
+            return;
+        }
+        Loan selectedLoan = null;
+        for (Transaction t : userTx) {
+            if (t instanceof Loan loan && loan.getTransactionID().equals(loanID)) {
+                selectedLoan = loan;
+                break;
+            }
+        }
+        if (selectedLoan == null) {
+            System.out.println("No matching loan found for the given ID.");
+            return;
+        }
+    
+        double repayAmount = keyboardInput.getSafeInput("Enter amount to repay:", "Invalid amount. Please enter a number.", Double::parseDouble);
+        Transaction repayment = activeUser.repayLoan(selectedLoan, repayAmount);
+        if (repayment != null) {
+            dataHandler.addUserTransaction(activeUser.getUsername(), repayment);
+            dataHandler.updateUserInfo();
+            dataHandler.saveAllTransactions();
+        }
+    }
+    
+    
     public void adminReviewLoans() {
         Map<String, List<Transaction>> allTransactions = dataHandler.getAllTransactionMap();
         Administrator admin = new Administrator(activeUser);
