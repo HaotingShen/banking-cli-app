@@ -226,18 +226,18 @@ public class User implements Serializable {
             System.out.println("Invalid amount for repayment.");
             return null;
         }
-        if (this.balance < amount) {
+        double remaining = loan.getAmount() - loan.getAmountPaid();
+        if (this.balance < Math.min(amount, remaining)) {
             System.out.println("Insufficient balance for repayment.");
             return null;
         }
-        if (loan.getAmountPaid() + amount > loan.getAmount()) {
-            System.out.println("Repayment exceeds remaining loan amount.");
-            return null;
-        }
-        this.balance -= amount;
-        loan.makeRepayment(amount);
-        System.out.println("Repayment successful.");
-        return new Transaction(-amount, "Loan repayment - " + loan.getDescription());
+
+        double repayAmount = Math.min(amount, remaining);
+        this.balance -= repayAmount;
+        loan.makeRepayment(repayAmount);
+        System.out.printf("Repayment successful. Repaid: $%.2f%n", repayAmount);
+
+        return new Transaction(-repayAmount, "Loan repayment - " + loan.getDescription());
     }
     
 }
