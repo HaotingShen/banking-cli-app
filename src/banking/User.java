@@ -170,14 +170,18 @@ public class User implements Serializable {
         return new Transaction(amount, "Transfer from " + senderName + " - " + description, transactionID);
     }
     
-    public Transaction recallTransaction(Transaction pastTransaction ) {
-    	Double amount = pastTransaction.getAmount();
-    	String newDescription = pastTransaction.getDescription()+" [RECALLED]";
-    	
-    	this.balance -= amount;
-    	return new Transaction(-amount, newDescription);
-    	
-    }
+    public Transaction recallTransaction(Transaction pastTransaction) {
+        double amount = pastTransaction.getAmount();
+        String newDescription = pastTransaction.getDescription() + " [RECALLED]";
+
+        if (pastTransaction instanceof Loan loan) {
+            //revert only unpaid portion
+            amount = loan.getAmount() - loan.getAmountPaid();
+        }         
+
+        this.balance -= amount;
+        return new Transaction(-amount, newDescription);
+    }   
 
     //Request statement
     public void printStatement(List<Transaction> transactions) {
@@ -187,7 +191,7 @@ public class User implements Serializable {
                 if (t != null) {
                     String extra = "";
                     if (t instanceof Loan loan) {
-                        extra = String.format(" [Loan: Approved=%b, Paid=%.2f/%.2f]",
+                        extra = String.format(" [Approved=%b, Paid=%.2f/%.2f]",
                             loan.isApproved(), loan.getAmountPaid(), loan.getAmount());
                     }
                     System.out.printf("[%s] %s: $%.2f%s\n", t.getDate(), t.getDescription(), t.getAmount(), extra);

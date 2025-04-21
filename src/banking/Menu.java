@@ -324,18 +324,28 @@ public class Menu {
         return false;
     }
     
+
     public void recallTransaction() {
-        String transactionID = keyboardInput.getSafeInput("Which transaction would you like to reacall? (type transaction id): ","",Function.identity());
+        String transactionID = keyboardInput.getSafeInput("Which transaction would you like to recall? (type transaction id): ","",Function.identity());
+        boolean idExists = dataHandler.getAllTransactions().stream().anyMatch(t -> t.getTransactionID().equals(transactionID));
         HashMap<User, Transaction> usersInfluenced = dataHandler.recallTransaction(transactionID);
+
         if (usersInfluenced.isEmpty()) {
-    		System.out.println("No matching transaction found for the given ID!");
-    		return ;
-    	}
+            //match found but recall was not allowed by rules, do nothing
+            if (idExists) {
+                return;
+            } 
+            //no match found, return error message
+            else {
+                System.out.println("No matching transaction found for the given ID!");
+                return;
+            }
+        }
         new Administrator(this.activeUser).recallTransactions(usersInfluenced);
         dataHandler.updateUserInfo();
-
+        dataHandler.saveAllTransactions();
     }
-    
+
     public void printAllTransactions() {
         List<Transaction> transactionList = dataHandler.getAllTransactions();
         new Administrator(this.activeUser).printAllTransactions(transactionList);
