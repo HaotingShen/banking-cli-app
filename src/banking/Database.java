@@ -130,10 +130,14 @@ public class Database implements Serializable{
                             System.out.println("Cannot recall an unapproved loan!");
                             return new HashMap<>();
                         }
-                        if (loan.isPaidOff()) {
-                            System.out.println("Cannot recall a fully paid loan!");
+                        if (loan.isPaidOff() || loan.getAmountPaid() > 0) {
+                            System.out.println("Cannot recall a loan that has already been partially or fully repaid!");
                             return new HashMap<>();
                         }
+                    }
+                    if (t.getDescription().toLowerCase().contains("loan repayment")) {
+                        System.out.println("Loan repayment transactions cannot be recalled!");
+                        return new HashMap<>();
                     }
                     transactionHistory.remove(t);
                     User user = getUserData(username);

@@ -34,4 +34,15 @@ public class Loan extends Transaction {
     public void approve() {
         this.isApproved = true;
     }
+
+    public boolean makeRepayment(double amount) {
+        if (!isApproved || isPaidOff || amount <= 0) return false;
+    
+        amountPaid += amount;
+        if (amountPaid >= getAmount()) {
+            isPaidOff = true;
+        }
+        return true;
+    }
+    
 }
