@@ -62,6 +62,7 @@ public class Menu {
         adminOptions.add(new Option("Print All Transaction", this::printAllTransactions));
         adminOptions.add(new Option("Recall Transaction", this::recallTransaction));
         adminOptions.add(new Option("Review All Loans", this::adminReviewLoans));
+        adminOptions.add(new Option("Logout", this::logOut));
     }
 
 
