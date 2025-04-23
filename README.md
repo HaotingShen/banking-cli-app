@@ -34,7 +34,8 @@ NA.
 
 Note: To use the `Enable 2FA Recovery` option, you will need some form of 2FA installed on your phone or computer. Apps like [Google Authenticator](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2), [Authy](https://www.authy.com/) and [FreeOTP](https://freeotp.github.io/) are commonly used, but there are many more. For example, you can simply use DuoMobile to scan the QR code. Once the account is added, you will be able to use the `Reset Password` option on the login page to reset your password without logging in.
 
-We also initialized an admin account with username "admin" and empty password for you to test admins' functions.
+Note: We have initialized an administrator account with the username **"admin"** and an **empty password** (just press Enter when prompted for the password).
+You can log in as an administrator from the login page using these credentials to test admin functionalities.
 
 # What commands are needed to compile and run your code from the command line?
 ```
