@@ -1,16 +1,9 @@
 package banking;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.security.MessageDigest;
-import banking.Transaction;
 
 
 public class Database implements Serializable{
@@ -122,6 +115,58 @@ public class Database implements Serializable{
     	fileSystem.saveTransactionsToFile(mapToTransactions);
     	fileSystem.saveUsersToFile(mapToUser);
     }
+    
+    public HashMap<User, Transaction> recallTransaction(String transactionID) {
+        HashMap<User, Transaction> usersToReturn = new HashMap<>();
+        //iterate through the map of transactions
+        for (Map.Entry<String, List<Transaction>> entry: mapToTransactions.entrySet()) {
+            String username = entry.getKey();
+            List<Transaction> transactionHistory = entry.getValue();
+            for (Transaction t : new ArrayList<>(transactionHistory)) {
+                if (t.getTransactionID().equals(transactionID)) {
+                    //loan-specific checks
+                    if (t instanceof Loan loan) {
+                        if (!loan.isApproved()) {
+                            System.out.println("Cannot recall an unapproved loan!");
+                            return new HashMap<>();
+                        }
+                        if (loan.isPaidOff() || loan.getAmountPaid() > 0) {
+                            System.out.println("Cannot recall a loan that has already been partially or fully repaid!");
+                            return new HashMap<>();
+                        }
+                    }
+                    if (t.getDescription().toLowerCase().contains("loan repayment")) {
+                        System.out.println("Loan repayment transactions cannot be recalled!");
+                        return new HashMap<>();
+                    }
+                    transactionHistory.remove(t);
+                    User user = getUserData(username);
+                    if (user != null) {
+                        usersToReturn.put(user, t);
+                    }
+                    break;
+                }
+            }
+        }
+        return usersToReturn;
+    }
+    
+    
+    public List<Transaction> getAllTransactions() {
+        List<Transaction> allTransactions = new ArrayList<>();
+        for (List<Transaction> txList : mapToTransactions.values()) {
+            allTransactions.addAll(txList);
+        }
+        return allTransactions;
+    }
 
+    //returns the full map of transactions by username
+    public Map<String, List<Transaction>> getAllTransactionMap() {
+        return mapToTransactions;
+    }
+    
+    public void saveAllTransactions() {
+        fileSystem.saveTransactionsToFile(mapToTransactions);
+    }
     
 }

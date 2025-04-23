@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterAll;
@@ -210,6 +211,47 @@ public class DatabaseTest {
 
         assertNull(myDatabase.getUserData(testUsername));
         assertNull(myDatabase.getUserTransaction(testUsername));
+
     }
+    
+    @Test
+    void testRecallTransaction() throws Exception {
+        myDatabase.createUser(testUser);
+
+        Transaction t1 = new Transaction(15.0, "Subscription");
+        Transaction t2 = new Transaction( 40.0, "Book Purchase");
+        String ID1 = t1.getTransactionID();
+        String ID2 = t2.getTransactionID();
+        
+        myDatabase.addUserTransaction(testUsername, t1);
+        myDatabase.addUserTransaction(testUsername, t2);
+
+        List<Transaction> beforeRecall = myDatabase.getUserTransaction(testUsername);
+        assertEquals(2, beforeRecall.size());
+
+        var recalled = myDatabase.recallTransaction(ID2);
+
+        assertEquals(1, recalled.size());
+        assertTrue(recalled.containsKey(testUser));
+        assertEquals(ID2, recalled.get(testUser).getTransactionID());
+
+        List<Transaction> afterRecall = myDatabase.getUserTransaction(testUsername);
+        assertEquals(1, afterRecall.size());
+        assertEquals(ID1, afterRecall.get(0).getTransactionID());
+
+        myDatabase.deleteUser(testUsername);
+    }
+
+    @Test
+    void testRecallNonexistentTransaction() throws Exception {
+        Transaction invalidTransaction = new Transaction(5.0, "Nonmatch" );
+        String invalid_ID = invalidTransaction.getTransactionID();
+
+        HashMap<User, Transaction> recalled = myDatabase.recallTransaction(invalid_ID);
+
+        assertTrue(recalled.isEmpty());
+
+    }
+
 
 }

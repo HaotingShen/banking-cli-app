@@ -3,6 +3,7 @@ package tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import banking.Database;
+import banking.Loan;
 import banking.Transaction;
 import banking.User;
 import banking.Authenticator;
@@ -87,7 +89,7 @@ public class UserTests {
         assertNotNull(transfer);
         database.addUserTransaction(sender.getUsername(), transfer);
 
-        Transaction receive = receiver.receiveTransfer(200.0, sender.getUsername(), "Rent payment");
+        Transaction receive = receiver.receiveTransfer(200.0, sender.getUsername(), "Rent payment", transfer.getTransactionID());
         database.addUserTransaction(receiver.getUsername(), receive);
 
         assertEquals(300.0, sender.getBalance(), 0.01);
@@ -216,8 +218,8 @@ public class UserTests {
         database.createUser(issuer);
         database.createUser(target);
 
-        issuer.issueCharge(target, 50.0, "Test Service");
-        Transaction chargeRecord = target.issueChargeRecord(50.0, issuer.getUsername(), "Test Service");
+        Transaction chargeIssued = issuer.issueCharge(target, 50.0, "Test Service");
+        Transaction chargeRecord = target.issueChargeRecord(50.0, issuer.getUsername(), "Test Service", chargeIssued.getTransactionID());
         database.addUserTransaction(target.getUsername(), chargeRecord);
 
         List<Transaction> targetTransactions = database.getUserTransaction(target.getUsername());
@@ -225,6 +227,65 @@ public class UserTests {
         assertTrue(targetTransactions.get(0).getDescription().contains("Issuer"));
         database.deleteUser("Issuer");
         database.deleteUser("Target");
+    }
+
+    @Test
+    void testSuccessfulLoanRepayment() throws Exception {
+        User testUser = new User("LoanPayer", Authenticator.hashPassword("password"), 500.0);
+        database.createUser(testUser);
+
+        Loan loan = new Loan(200.0, "Loan request - laptop");
+        loan.approve();
+        Transaction loanTx = loan;
+        database.addUserTransaction(testUser.getUsername(), loanTx);
+
+        Transaction repayment = testUser.repayLoan(loan, 150.0);
+        assertNotNull(repayment);
+        assertEquals(350.0, testUser.getBalance(), 0.01);
+        assertEquals(150.0, loan.getAmountPaid(), 0.01);
+        assertFalse(loan.isPaidOff());
+
+        Transaction finalRepayment = testUser.repayLoan(loan, 50.0);
+        assertNotNull(finalRepayment);
+        assertTrue(loan.isPaidOff());
+        assertEquals(300.0, testUser.getBalance(), 0.01);
+        database.deleteUser("LoanPayer");
+    }
+
+    @Test
+    void testRepaymentFailsForUnapprovedLoan() throws Exception {
+        User testUser = new User("UnapprovedLoanUser", Authenticator.hashPassword("password"), 500.0);
+        database.createUser(testUser);
+
+        Loan loan = new Loan(200.0, "Loan request - book");
+        Transaction repayment = testUser.repayLoan(loan, 100.0);
+
+        assertNull(repayment);
+        assertEquals(500.0, testUser.getBalance(), 0.01);
+        database.deleteUser("UnapprovedLoanUser");
+    }
+
+    @Test
+    void testOverRepaymentIsCapped() throws Exception {
+        User testUser = new User("Overpayer", Authenticator.hashPassword("password"), 500.0);
+        database.createUser(testUser);
+
+        Loan loan = new Loan(100.0, "Loan request - gift card");
+        loan.approve();
+        database.addUserTransaction(testUser.getUsername(), loan);
+
+        Transaction partialRepayment = testUser.repayLoan(loan, 80.0);
+        assertNotNull(partialRepayment);
+        assertEquals(420.0, testUser.getBalance(), 0.01);
+        assertEquals(80.0, loan.getAmountPaid(), 0.01);
+        assertFalse(loan.isPaidOff());
+
+        Transaction cappedRepayment = testUser.repayLoan(loan, 50.0);
+        assertNotNull(cappedRepayment);
+        assertEquals(400.0, testUser.getBalance(), 0.01);
+        assertEquals(100.0, loan.getAmountPaid(), 0.01);
+        assertTrue(loan.isPaidOff());
+        database.deleteUser("Overpayer");
     }
 
 }

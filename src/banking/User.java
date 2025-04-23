@@ -14,19 +14,30 @@ public class User implements Serializable {
     private double balance;
     private String recoverySecret;
     private String accountNumber;
+    private int authLevel;
+    private boolean frozen = false;
     
     public User(String username, String hashedPassword, double balance) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.balance = balance;
         this.accountNumber = UUID.randomUUID().toString();
+        this.authLevel = 0;
     }
     
     public String getAccountNumber() {
 		return accountNumber;
     }
+
+    public void setAuthLevel(int authLevel) {
+        this.authLevel = authLevel;
+    }
+
+    public boolean isAuthorizedFor(int requiredClearance) {
+        return this.authLevel >= requiredClearance;
+    }
     
-    public Object getHashedPassword() {
+    public String getHashedPassword() {
         return hashedPassword;
     }
 
@@ -75,6 +86,23 @@ public class User implements Serializable {
         return Objects.hash(username, hashedPassword, balance);
     }
     
+    public boolean isFrozen() {
+        return frozen;
+    }
+
+    public void freezeAccount() {
+        this.frozen = true;
+    }
+
+    public void unfreezeAccount(String passwordAttempt) {
+        if (this.hashedPassword.equals(Authenticator.hashPassword(passwordAttempt))) {
+            this.frozen = false;
+            System.out.println("Account successfully unfrozen.");
+        } else {
+            System.out.println("Incorrect password. Unable to unfreeze account.");
+        }
+    }
+    
     //issue a charge
     public Transaction issueCharge(User target, double amount, String description) {
         if (this.accountNumber.equals(target.accountNumber)) {
@@ -96,8 +124,8 @@ public class User implements Serializable {
     }
 
     //create charge record for the target user
-    public Transaction issueChargeRecord(double amount, String issuerUsername, String description) {
-        return new Transaction(-amount, "Charged by " + issuerUsername + " - " + description);
+    public Transaction issueChargeRecord(double amount, String issuerUsername, String description, String transactionID) {
+        return new Transaction(-amount, "Charged by " + issuerUsername + " - " + description, transactionID);
     }    
     
     //deposit amount
@@ -111,6 +139,13 @@ public class User implements Serializable {
             System.out.println("Deposit amount must be positive.");
         }
     	return null;
+    }
+
+    //deposit silently without transaction record or printout
+    public void depositSilently(double amount) {
+        if (amount > 0) {
+            this.balance += amount;
+        }
     }
 
     //withdraw amount
@@ -149,20 +184,78 @@ public class User implements Serializable {
     }
     
     //create transfer record for the recipient
-    public Transaction receiveTransfer(double amount, String senderName, String description) {
-        return new Transaction(amount, "Transfer from " + senderName + " - " + description);
+    public Transaction receiveTransfer(double amount, String senderName, String description, String transactionID) {
+        return new Transaction(amount, "Transfer from " + senderName + " - " + description, transactionID);
     }
+    
+    public Transaction recallTransaction(Transaction pastTransaction) {
+        double amount = pastTransaction.getAmount();
+        String newDescription = pastTransaction.getDescription() + " [RECALLED]";
+
+        // if (pastTransaction instanceof Loan loan) {
+        //     //revert only unpaid portion
+        //     amount = loan.getAmount() - loan.getAmountPaid();
+        // }         
+
+        this.balance -= amount;
+        return new Transaction(-amount, newDescription);
+    }   
 
     //Request statement
     public void printStatement(List<Transaction> transactions) {
         System.out.println("\n--- Account Statement ---");
-        if(transactions != null) {
+        if (transactions != null) {
             for (Transaction t : transactions) {
-                System.out.printf("[%s] %s: $%.2f\n", 
-                    t.getDate(), t.getDescription(), t.getAmount());
+                if (t != null) {
+                    String extra = "";
+                    if (t instanceof Loan loan) {
+                        extra = String.format(" [Approved=%b, Paid=%.2f/%.2f]",
+                            loan.isApproved(), loan.getAmountPaid(), loan.getAmount());
+                    }
+                    System.out.printf("[%s] %s: $%.2f%s\n", t.getDate(), t.getDescription(), t.getAmount(), extra);
+                }
             }
         }
         System.out.printf("Current Balance: $%.2f\n", balance);
+    }
+
+    //Request loan
+    public Loan requestLoan(double amount, String reason) {
+        if (amount <= 0) {
+            System.out.println("Loan amount must be positive.");
+            return null;
+        }
+        Loan loan = new Loan(amount, "Loan request - " + reason);
+        System.out.println("Loan request submitted for $" + String.format("%.2f", amount));
+        return loan;
+    }    
+
+    //Repay loan
+    public Transaction repayLoan(Loan loan, double amount) {
+        if (!loan.isApproved()) {
+            System.out.println("Cannot repay an unapproved loan.");
+            return null;
+        }
+        if (loan.isPaidOff()) {
+            System.out.println("This loan has already been paid off.");
+            return null;
+        }
+        if (amount <= 0) {
+            System.out.println("Invalid amount for repayment.");
+            return null;
+        }
+        double remaining = loan.getAmount() - loan.getAmountPaid();
+        if (this.balance < Math.min(amount, remaining)) {
+            System.out.println("Insufficient balance for repayment.");
+            return null;
+        }
+
+        double repayAmount = Math.min(amount, remaining);
+        this.balance -= repayAmount;
+        loan.makeRepayment(repayAmount);
+        System.out.printf("Repayment successful. Repaid: $%.2f%n", repayAmount);
+
+        return new Transaction(-repayAmount, "Loan repayment - " + loan.getDescription());
     }
     
 }
