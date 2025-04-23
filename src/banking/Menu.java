@@ -54,7 +54,8 @@ public class Menu {
         privateOptions.add(new Option("Enable 2FA Recovery", this::enable2FA, () -> activeUser.getSecret() == null));
         privateOptions.add(new Option("Remove 2FA Recovery", this::remove2FA, () -> activeUser.getSecret() != null));
         privateOptions.add(new Option("Change Username", this::changeUsername));
-        privateOptions.add(new Option("Logout", this::logOut));
+        privateOptions.add(new Option("Freeze My Account", this::freezeMyAccount));
+        privateOptions.add(new Option("Logout",this::logOut));
     }
 
     private void initializeAdminOptions() {
@@ -62,6 +63,8 @@ public class Menu {
         adminOptions.add(new Option("Print All Transaction", this::printAllTransactions));
         adminOptions.add(new Option("Recall Transaction", this::recallTransaction));
         adminOptions.add(new Option("Review All Loans", this::adminReviewLoans));
+        adminOptions.add(new Option("Freeze User Account", this::adminFreezeUser));
+        adminOptions.add(new Option("Unfreeze User Account", this::adminUnfreezeUser));
         adminOptions.add(new Option("Logout", this::logOut));
     }
 
@@ -242,6 +245,15 @@ public class Menu {
     public boolean authenticateUserPass(String username,String password) {
         User requestedAccount = dataHandler.getUserData(username);
         if (requestedAccount.getHashedPassword().equals(Authenticator.hashPassword(password))) {
+
+            if (requestedAccount.isFrozen()) {
+                System.out.println("Your account is currently frozen. Please unfreeze it before accessing.");
+                String unfreezeAttempt = keyboardInput.getSafeInput("Enter your password to unfreeze: ", "", Function.identity());
+                requestedAccount.unfreezeAccount(unfreezeAttempt);
+                if (requestedAccount.isFrozen()) {
+                    return false;
+                }
+            }
         	if (requestedAccount.isAuthorizedFor(2)) {
         		this.menuScope = "admin";
         	}else {
@@ -439,6 +451,40 @@ public class Menu {
             }
         }
     }
+    
+    public void freezeMyAccount() {
+        activeUser.freezeAccount();
+        System.out.println("Your account has been frozen. Logging out...");
+        logOut();
+        dataHandler.updateUserInfo();
+    }
+
+    
+        
+    public void adminFreezeUser() {
+        String username = keyboardInput.getSafeInput("Enter the username to freeze:", "", Function.identity());
+        User target = dataHandler.getUserData(username);
+        if (target == null) {
+            System.out.println("No such user.");
+            return;
+        }
+        new Administrator(activeUser).freezeUserAccount(target);
+        dataHandler.updateUserInfo();
+    }
+
+    public void adminUnfreezeUser() {
+        String username = keyboardInput.getSafeInput("Enter the username to unfreeze:", "", Function.identity());
+        User target = dataHandler.getUserData(username);
+        if (target == null) {
+            System.out.println("No such user.");
+            return;
+        }
+        String password = keyboardInput.getSafeInput("Enter user's password to unfreeze:", "", Function.identity());
+        new Administrator(activeUser).unfreezeUserAccount(target, password);
+        dataHandler.updateUserInfo();
+    }
+
+
 
     public void logOut() {
         this.activeUser = subsystemUser;
